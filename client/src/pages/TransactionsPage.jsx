@@ -6,6 +6,7 @@ import {
     BsCheckCircle, BsXCircle, BsClock
 } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
+import LegalLinks from '../components/LegalLinks'
 import useAuth from '../hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getTransactions, updateTransaction } from '../services/api'
@@ -309,10 +310,7 @@ export default function TransactionsPage() {
                     <span className="text-muted small">
                         &copy; {new Date().getFullYear()} TradeX. Built for the campus community.
                     </span>
-                    <div className="d-flex gap-3">
-                        <a href="/privacy" className="text-muted small text-decoration-none">Privacy</a>
-                        <a href="/terms" className="text-muted small text-decoration-none">Terms</a>
-                    </div>
+                    <LegalLinks />
                 </div>
             </footer>
         </>

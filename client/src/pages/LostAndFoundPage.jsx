@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, Spinner } from 'react-bootstrap'
 import { BsSliders, BsPlusCircle, BsArrowRepeat, BsCalendar, BsGeoAlt } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
+import LegalLinks from '../components/LegalLinks'
 import { useQuery } from '@tanstack/react-query'
 import { getLostFoundPosts } from '../services/api'
 
@@ -171,10 +172,7 @@ export default function LostAndFoundPage() {
                     <span className="text-muted small">
                         &copy; {new Date().getFullYear()} TradeX. Built for the campus community.
                     </span>
-                    <div className="d-flex gap-3">
-                        <a href="/privacy" className="text-muted small text-decoration-none">Privacy</a>
-                        <a href="/terms" className="text-muted small text-decoration-none">Terms</a>
-                    </div>
+                    <LegalLinks />
                 </div>
             </footer>
         </>

@@ -1,15 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import AppNavbar from "../components/AppNavbar";
 import FormInput from "../components/FormInput";
 import useForm from "../hooks/useForm";
-import { forgotPassword } from "../services/api";
+import { forgotPassword, getAuthPublicConfig } from "../services/api";
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailConfigured, setEmailConfigured] = useState(null);
+
+  useEffect(() => {
+    getAuthPublicConfig()
+      .then((c) => setEmailConfigured(!!c.forgotPasswordEmailEnabled))
+      .catch(() => setEmailConfigured(false));
+  }, []);
 
   const validate = (values) => {
     const newErrors = {};
@@ -61,6 +68,12 @@ export default function ForgotPassword() {
                   <p className="text-muted small text-center mb-4">
                     Enter your student email and we'll send you a reset link.
                   </p>
+                  {emailConfigured === false && (
+                    <Alert variant="warning" className="small">
+                      Password reset by email is not configured on this server yet. You can still submit
+                      your email; the server will acknowledge the request, but no message will be sent until mail is enabled.
+                    </Alert>
+                  )}
 
                   <Form onSubmit={handleSubmit(onSubmit)}>
                     <FormInput
@@ -96,9 +109,21 @@ export default function ForgotPassword() {
                 </>
               ) : (
                 <div className="text-center">
-                  <h5 className="fw-bold">Check your email</h5>
+                  <h5 className="fw-bold">
+                    {emailConfigured === false ? "Request recorded" : "Check your email"}
+                  </h5>
                   <p className="text-muted small">
-                    We’ve sent a password reset link to <strong>{values.email}</strong>. Check your inbox and follow the instructions.
+                    {emailConfigured === false ? (
+                      <>
+                        Outbound email is not set up, so no reset link was sent. If you need access,
+                        contact your project administrator or use an account you can still sign in with.
+                      </>
+                    ) : (
+                      <>
+                        We’ve sent a password reset link to <strong>{values.email}</strong>. Check your inbox
+                        and follow the instructions.
+                      </>
+                    )}
                   </p>
                   <Link to="/login">
                     <Button className="mt-2 border-0" style={{ backgroundColor: "#E0E000", color: "#111111" }}>

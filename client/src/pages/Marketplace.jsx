@@ -6,6 +6,7 @@ import AppNavbar from '../components/AppNavbar'
 import ProductCard from '../components/ProductCard'
 import useAuth from '../hooks/useAuth'
 import { getListings, getCategories } from '../services/api'
+import LegalLinks from '../components/LegalLinks'
 import { useQuery } from '@tanstack/react-query'
 
 function Marketplace() {
@@ -198,10 +199,7 @@ function Marketplace() {
           <span className="text-muted small">
             &copy; {new Date().getFullYear()} TradeX. Built for the campus community.
           </span>
-          <div className="d-flex gap-3">
-            <a href="/privacy" className="text-muted small text-decoration-none">Privacy</a>
-            <a href="/terms" className="text-muted small text-decoration-none">Terms</a>
-          </div>
+          <LegalLinks />
         </div>
       </footer>
     </>

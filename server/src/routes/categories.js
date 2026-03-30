@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prisma');
 const auth = require('../middleware/auth');
+const { isAdminEmail } = require('../lib/admin');
 
 // GET all categories
 router.get('/', async (req, res) => {
@@ -32,9 +33,13 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST create category (protected)
+// POST create category (admin only — set ADMIN_EMAILS in env)
 router.post('/', auth, async (req, res) => {
     try {
+        if (!isAdminEmail(req.user.email)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+
         const { name, type } = req.body;
 
         if (!name || !type) {
@@ -56,9 +61,13 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
-// PUT update category (protected)
+// PUT update category (admin only)
 router.put('/:id', auth, async (req, res) => {
     try {
+        if (!isAdminEmail(req.user.email)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+
         const { name, type } = req.body;
 
         const existing = await prisma.category.findUnique({
@@ -82,9 +91,13 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 
-// DELETE category (protected)
+// DELETE category (admin only)
 router.delete('/:id', auth, async (req, res) => {
     try {
+        if (!isAdminEmail(req.user.email)) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+
         const existing = await prisma.category.findUnique({
             where: { id: parseInt(req.params.id) }
         });

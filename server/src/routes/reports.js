@@ -2,14 +2,18 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prisma');
 const auth = require('../middleware/auth');
+const { isAdminEmail } = require('../lib/admin');
 
-// GET all reports (admin use)
+// GET reports: own reports only, unless ADMIN_EMAILS includes your email
 router.get('/', auth, async (req, res) => {
     try {
         const { listingId, postId } = req.query;
+        const userId = req.user.userId;
+        const admin = isAdminEmail(req.user.email);
 
         const reports = await prisma.report.findMany({
             where: {
+                ...(!admin && { reporterId: userId }),
                 ...(listingId && { listingId: parseInt(listingId) }),
                 ...(postId && { postId: parseInt(postId) })
             },
@@ -34,9 +38,12 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// GET single report
+// GET single report (reporter or admin)
 router.get('/:id', auth, async (req, res) => {
     try {
+        const userId = req.user.userId;
+        const admin = isAdminEmail(req.user.email);
+
         const report = await prisma.report.findUnique({
             where: { id: parseInt(req.params.id) },
             include: {
@@ -53,6 +60,10 @@ router.get('/:id', auth, async (req, res) => {
         });
 
         if (!report) return res.status(404).json({ error: 'Report not found' });
+
+        if (!admin && report.reporterId !== userId) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
 
         res.json(report);
     } catch (err) {

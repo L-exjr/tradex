@@ -3,6 +3,13 @@ const API_ORIGIN = (
 ).replace(/\/$/, "");
 const BASE_URL = `${API_ORIGIN}/api`;
 
+export const getAuthPublicConfig = async () => {
+    const res = await fetch(`${BASE_URL}/auth/public-config`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load config");
+    return data;
+};
+
 const getHeaders = (isFormData = false) => {
     const headers = {};
     const token = localStorage.getItem("token");

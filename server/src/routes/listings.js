@@ -4,6 +4,7 @@ const multer = require('multer');
 const supabase = require('../supabase');
 const prisma = require('../prisma');
 const auth = require('../middleware/auth');
+const optionalAuth = require('../middleware/optionalAuth');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -52,8 +53,8 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET single listing
-router.get('/:id', async (req, res) => {
+// GET single listing (soft-deleted hidden unless viewer is the owner)
+router.get('/:id', optionalAuth, async (req, res) => {
     try {
         const listing = await prisma.listing.findUnique({
             where: { id: parseInt(req.params.id) },
@@ -67,6 +68,13 @@ router.get('/:id', async (req, res) => {
         });
 
         if (!listing) return res.status(404).json({ error: 'Listing not found' });
+
+        if (listing.status === 'deleted') {
+            const viewerId = req.user?.userId;
+            if (!viewerId || viewerId !== listing.userId) {
+                return res.status(404).json({ error: 'Listing not found' });
+            }
+        }
 
         res.json(listing);
     } catch (err) {

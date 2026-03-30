@@ -207,8 +207,8 @@ function SignupPage() {
                         &copy; {new Date().getFullYear()} TradeX. Student verification required for all listings.
                     </div>
                     <Nav className="d-flex gap-3 justify-content-center flex-wrap">
-                        <Nav.Link href="/privacy" className="text-dark small" style={{ textDecoration: "underline" }}>Privacy Policy</Nav.Link>
-                        <Nav.Link href="/terms" className="text-dark small" style={{ textDecoration: "underline" }}>Terms of Service</Nav.Link>
+                        <Nav.Link as={Link} to="/privacy" className="text-dark small" style={{ textDecoration: "underline" }}>Privacy Policy</Nav.Link>
+                        <Nav.Link as={Link} to="/terms" className="text-dark small" style={{ textDecoration: "underline" }}>Terms of Service</Nav.Link>
                     </Nav>
                 </Container>
             </footer>

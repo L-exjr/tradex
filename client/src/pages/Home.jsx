@@ -86,9 +86,9 @@ function Home() {
                 <Container fluid className="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3 gap-lg-0">
 
                     <Nav className="d-flex gap-3 flex-wrap align-items-center">
-                        <Nav.Link href="/privacy" className="text-dark">Privacy</Nav.Link>
-                        <Nav.Link href="/terms" className="text-dark">Terms</Nav.Link>
-                        <Nav.Link href="/cookies" className="text-dark">Cookies</Nav.Link>
+                        <Nav.Link as={Link} to="/privacy" className="text-dark">Privacy</Nav.Link>
+                        <Nav.Link as={Link} to="/terms" className="text-dark">Terms</Nav.Link>
+                        <Nav.Link as={Link} to="/cookies" className="text-dark">Cookies</Nav.Link>
                     </Nav>
 
                     <div className="text-center text-dark flex-lg-grow-1 d-flex justify-content-center">

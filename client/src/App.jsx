@@ -16,6 +16,12 @@ import LostFoundDetailPage from './pages/LostFoundDetailPage';
 import ReportLostItemPage from './pages/ReportLostItemPage';
 import TransactionsPage from './pages/TransactionsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import SupportPage from './pages/SupportPage';
+import HelpPage from './pages/HelpPage';
+import CampusSafetyPage from './pages/CampusSafetyPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import CookiesPage from './pages/CookiesPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -29,6 +35,12 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/campus-safety" element={<CampusSafetyPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/cookies" element={<CookiesPage />} />
 
         {/* Protected routes */}
         <Route path="/marketplace" element={

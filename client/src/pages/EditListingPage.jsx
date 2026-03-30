@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Row, Col, Form, Button, Spinner } from 'react-bootstrap'
 import { BsCameraFill, BsXCircleFill, BsTrash } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
+import LegalLinks from '../components/LegalLinks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getListing, updateListing, deleteListing, getCategories } from '../services/api'
 import useForm from '../hooks/useForm'
@@ -406,10 +407,7 @@ export default function EditListingPage() {
                     <span className="text-muted small">
                         &copy; {new Date().getFullYear()} TradeX. Built for the campus community.
                     </span>
-                    <div className="d-flex gap-3">
-                        <a href="/privacy" className="text-muted small text-decoration-none">Privacy</a>
-                        <a href="/terms" className="text-muted small text-decoration-none">Terms</a>
-                    </div>
+                    <LegalLinks />
                 </div>
             </footer>
         </>

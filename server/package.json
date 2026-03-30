@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "seed": "node prisma/seed.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:diff": "prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script"
   },
   "keywords": [],
   "author": "",

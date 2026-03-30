@@ -7,7 +7,6 @@ import FormInput from "../components/FormInput";
 import useForm from "../hooks/useForm";
 import { loginUser } from "../services/api";
 import useAuth from "../hooks/useAuth";
-
 function LoginPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -150,7 +149,7 @@ function LoginPage() {
                                 <hr className="flex-grow-1" />
                             </div>
 
-                            <Button variant="light" className="w-100 border">
+                            <Button variant="light" className="w-100 border" disabled title="Not available yet">
                                 Google
                             </Button>
 
@@ -190,10 +189,10 @@ function LoginPage() {
                     </div>
 
                     <Nav className="d-flex gap-3 justify-content-center flex-wrap">
-                        <Nav.Link href="/privacy" className="text-dark small" style={{ textDecoration: "underline" }}>
+                        <Nav.Link as={Link} to="/privacy" className="text-dark small" style={{ textDecoration: "underline" }}>
                             Privacy Policy
                         </Nav.Link>
-                        <Nav.Link href="/terms" className="text-dark small" style={{ textDecoration: "underline" }}>
+                        <Nav.Link as={Link} to="/terms" className="text-dark small" style={{ textDecoration: "underline" }}>
                             Terms of Service
                         </Nav.Link>
                     </Nav>

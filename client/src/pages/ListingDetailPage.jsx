@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Badge, Button, Spinner } from 'react-bootstrap';
 import { BsArrowLeft, BsHeart, BsHeartFill, BsShareFill, BsPersonCircle, BsGeoAlt, BsClock, BsFlag } from 'react-icons/bs';
 import AppNavbar from '../components/AppNavbar';
+import LegalLinks from '../components/LegalLinks';
 import useAuth from '../hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getListing, createTransaction, saveListing, unsaveListing, getSavedListings, createReport } from '../services/api';
@@ -295,10 +296,7 @@ export default function ListingDetailPage() {
                     <span className="text-muted small">
                         &copy; {new Date().getFullYear()} TradeX. Built for the campus community.
                     </span>
-                    <div className="d-flex gap-3">
-                        <a href="/privacy" className="text-muted small text-decoration-none">Privacy</a>
-                        <a href="/terms" className="text-muted small text-decoration-none">Terms</a>
-                    </div>
+                    <LegalLinks />
                 </div>
             </footer>
         </>

@@ -22,6 +22,13 @@ const transporter =
 const uploadAvatar = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
+// Public flags for the web client (no secrets)
+router.get('/public-config', (req, res) => {
+    res.json({
+        forgotPasswordEmailEnabled: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
+    });
+});
+
 // Register account
 router.post('/register', async (req, res) => {
     try {

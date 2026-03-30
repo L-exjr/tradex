@@ -1,3 +1,10 @@
+-- Baseline migration generated from prisma/schema.prisma (Prisma migrate diff --from-empty --to-schema).
+-- For an existing database that already matches this schema, mark as applied without running:
+--   npx prisma migrate resolve --applied 20260330120000_init
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "ListingStatus" AS ENUM ('active', 'sold', 'deleted');
 
@@ -17,7 +24,10 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "passwordHash" TEXT NOT NULL,
     "studentId" TEXT,
+    "avatarUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resetToken" TEXT,
+    "resetTokenExpiry" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -163,6 +173,12 @@ CREATE INDEX "Report_listingId_idx" ON "Report"("listingId");
 
 -- CreateIndex
 CREATE INDEX "Report_postId_idx" ON "Report"("postId");
+
+-- CreateIndex
+CREATE INDEX "SavedListing_userId_idx" ON "SavedListing"("userId");
+
+-- CreateIndex
+CREATE INDEX "SavedListing_listingId_idx" ON "SavedListing"("listingId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SavedListing_userId_listingId_key" ON "SavedListing"("userId", "listingId");
