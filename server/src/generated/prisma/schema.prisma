@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ListingStatus {
+  active
+  sold
+  deleted
+}
+
+enum LFType {
+  lost
+  found
+}
+
+enum LFStatus {
+  open
+  resolved
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  cancelled
+}
+
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  studentId        String?   @unique
+  avatarUrl        String?
+  createdAt        DateTime  @default(now())
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  listings         Listing[]
+  posts            LostFoundPost[]
+  sentMessages     Message[]       @relation("Sender")
+  receivedMessages Message[]       @relation("Receiver")
+  purchases        Transaction[]   @relation("Buyer")
+  sales            Transaction[]   @relation("Seller")
+  reports          Report[]
+  SavedListing     SavedListing[]
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  type String
+
+  listings Listing[]
+  posts    LostFoundPost[]
+}
+
+model Listing {
+  pickupLocation String?
+  id             Int           @id @default(autoincrement())
+  userId         String
+  title          String
+  description    String
+  price          Float
+  categoryId     Int
+  status         ListingStatus @default(active)
+  createdAt      DateTime      @default(now())
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category       @relation(fields: [categoryId], references: [id])
+  images       Image[]
+  transactions Transaction[]
+  reports      Report[]
+  savedBy      SavedListing[]
+
+  @@index([categoryId, status])
+}
+
+model LostFoundPost {
+  id            Int      @id @default(autoincrement())
+  userId        String
+  title         String
+  description   String
+  categoryId    Int
+  type          LFType
+  locationText  String
+  dateLostFound DateTime
+  status        LFStatus @default(open)
+  createdAt     DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+  images   Image[]
+  reports  Report[]
+
+  @@index([type, status])
+}
+
+model Image {
+  id        Int    @id @default(autoincrement())
+  url       String
+  listingId Int?
+  postId    Int?
+
+  listing Listing?       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  post    LostFoundPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([postId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+  readStatus Boolean  @default(false)
+
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([receiverId, readStatus])
+}
+
+model Transaction {
+  id        Int               @id @default(autoincrement())
+  listingId Int
+  buyerId   String
+  sellerId  String
+  price     Float
+  status    TransactionStatus @default(pending)
+  createdAt DateTime          @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  buyer   User    @relation("Buyer", fields: [buyerId], references: [id])
+  seller  User    @relation("Seller", fields: [sellerId], references: [id])
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([listingId])
+}
+
+model Report {
+  id         Int      @id @default(autoincrement())
+  reporterId String
+  listingId  Int?
+  postId     Int?
+  reason     String
+  createdAt  DateTime @default(now())
+
+  reporter User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  listing  Listing?       @relation(fields: [listingId], references: [id])
+  post     LostFoundPost? @relation(fields: [postId], references: [id])
+
+  @@index([reporterId])
+  @@index([listingId])
+  @@index([postId])
+}
+
+model SavedListing {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  listingId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([userId])
+  @@index([listingId])
+}
