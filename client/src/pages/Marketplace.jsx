@@ -53,7 +53,6 @@ function Marketplace() {
         border={true}
         rightLinks={[
           { label: 'Lost & Found', to: '/lostfound' },
-          { label: 'Support', to: '/support' },
         ]}
       />
 
