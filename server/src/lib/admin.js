@@ -1,15 +1,12 @@
-/** Comma-separated list in ADMIN_EMAILS (lowercase match). */
-function parseAdminEmails() {
-    const raw = process.env.ADMIN_EMAILS || '';
-    return raw
-        .split(',')
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-}
+/** Comma-separated list in ADMIN_EMAILS (lowercase match). Parsed once at startup. */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 
 function isAdminEmail(email) {
     if (!email) return false;
-    return parseAdminEmails().includes(String(email).toLowerCase());
+    return ADMIN_EMAILS.includes(String(email).toLowerCase());
 }
 
-module.exports = { isAdminEmail, parseAdminEmails };
+module.exports = { isAdminEmail };

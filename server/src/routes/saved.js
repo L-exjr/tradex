@@ -1,83 +1,62 @@
-const express = require('express');
-const router = express.Router();
-const prisma = require('../prisma');
-const auth = require('../middleware/auth');
+const express      = require('express');
+const router       = express.Router();
+const prisma       = require('../prisma');
+const auth         = require('../middleware/auth');
+const asyncHandler = require('../middleware/asyncHandler');
+const log          = require('../lib/logger');
 
-// GET my saved listings
-router.get('/', auth, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-
-        const saved = await prisma.savedListing.findMany({
-            where: { userId },
-            include: {
-                listing: {
-                    include: {
-                        images: true,
-                        category: true,
-                        user: {
-                            select: { id: true, name: true, email: true }
-                        }
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        res.json(saved);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// POST save a listing
-router.post('/:listingId', auth, async (req, res) => {
-    try {
-        const userId = req.user.userId;
-        const listingId = parseInt(req.params.listingId);
-
-        const listing = await prisma.listing.findUnique({
-            where: { id: listingId }
-        });
-
-        if (!listing) return res.status(404).json({ error: 'Listing not found' });
-
-        if (listing.userId === userId) {
-            return res.status(400).json({ error: 'Cannot save your own listing' });
+const SAVED_INCLUDE = {
+    listing: {
+        include: {
+            images:   true,
+            category: true,
+            user:     { select: { id: true, name: true, email: true } }
         }
-
-        const saved = await prisma.savedListing.create({
-            data: { userId, listingId }
-        });
-
-        res.status(201).json(saved);
-    } catch (err) {
-        if (err.code === 'P2002') {
-            return res.status(400).json({ error: 'Listing already saved' });
-        }
-        console.error(err);
-        res.status(500).json({ error: err.message });
     }
-});
+};
 
-// DELETE unsave a listing
-router.delete('/:listingId', auth, async (req, res) => {
+// GET /api/saved
+router.get('/', auth, asyncHandler(async (req, res) => {
+    const saved = await prisma.savedListing.findMany({
+        where:   { userId: req.user.userId },
+        include: SAVED_INCLUDE,
+        orderBy: { createdAt: 'desc' }
+    });
+    res.ok(saved);
+}));
+
+// POST /api/saved/:listingId
+router.post('/:listingId', auth, asyncHandler(async (req, res) => {
+    const userId    = req.user.userId;
+    const listingId = parseInt(req.params.listingId);
+
+    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing)                   return res.notFound('Listing not found');
+    if (listing.userId === userId)  return res.badRequest('Cannot save your own listing');
+
     try {
-        const userId = req.user.userId;
-        const listingId = parseInt(req.params.listingId);
+        const saved = await prisma.savedListing.create({ data: { userId, listingId } });
+        res.created(saved);
+    } catch (err) {
+        if (err.code === 'P2002') return res.conflict('Listing already saved');
+        throw err;
+    }
+}));
 
+// DELETE /api/saved/:listingId
+router.delete('/:listingId', auth, asyncHandler(async (req, res) => {
+    const userId    = req.user.userId;
+    const listingId = parseInt(req.params.listingId);
+
+    try {
         await prisma.savedListing.delete({
-            where: {
-                userId_listingId: { userId, listingId }
-            }
+            where: { userId_listingId: { userId, listingId } }
         });
-
-        res.json({ success: true, message: 'Listing unsaved' });
+        res.noContent();
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        if (err.code === 'P2025') return res.notFound('Saved listing not found');
+        throw err;
     }
-});
+}));
 
 module.exports = router;

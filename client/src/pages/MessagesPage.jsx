@@ -8,30 +8,44 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getConversations, getMessages, sendMessage } from '../services/api'
 
 export default function MessagesPage() {
-    const navigate = useNavigate()
+    const navigate      = useNavigate()
     const { partnerId } = useParams()
-    const { user } = useAuth()
-    const queryClient = useQueryClient()
-    const [message, setMessage] = useState('')
+    const { user }      = useAuth()
+    const queryClient   = useQueryClient()
+    const [message, setMessage]         = useState('')
+    const [isTabVisible, setTabVisible] = useState(!document.hidden)
     const messagesEndRef = useRef(null)
+    const inputRef       = useRef(null)
 
-    // Poll conversations every 10 s so unread badges stay fresh
+    // Pause polling when the browser tab is hidden — no wasted requests
+    useEffect(() => {
+        const handler = () => setTabVisible(!document.hidden)
+        document.addEventListener('visibilitychange', handler)
+        return () => document.removeEventListener('visibilitychange', handler)
+    }, [])
+
+    // Focus the input box whenever the active conversation changes
+    useEffect(() => {
+        if (partnerId) inputRef.current?.focus()
+    }, [partnerId])
+
+    // Poll conversations every 10 s (unread badge updates)
     const { data: conversations = [], isLoading: loadingConversations } = useQuery({
-        queryKey: ['conversations'],
-        queryFn: getConversations,
-        enabled: !!user,
-        refetchInterval: 10000
+        queryKey:       ['conversations'],
+        queryFn:        getConversations,
+        enabled:        !!user,
+        refetchInterval: isTabVisible ? 10000 : false
     })
 
-    // Poll active thread every 5 s for new incoming messages
+    // Poll active thread every 5 s for incoming messages
     const { data: messages = [], isLoading: loadingMessages } = useQuery({
-        queryKey: ['messages', partnerId],
-        queryFn: () => getMessages(partnerId),
-        enabled: !!partnerId,
-        refetchInterval: 5000
+        queryKey:       ['messages', partnerId],
+        queryFn:        () => getMessages(partnerId),
+        enabled:        !!partnerId,
+        refetchInterval: isTabVisible ? 5000 : false
     })
 
-    // Auto-scroll to the bottom whenever the messages array changes
+    // Auto-scroll to newest message
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [messages])
@@ -45,35 +59,31 @@ export default function MessagesPage() {
         }
     })
 
-    const handleSend = (e) => {
-        e.preventDefault()
-        if (!message.trim()) return
+    const handleSend = () => {
+        if (!message.trim() || sendMutation.isPending) return
         sendMutation.mutate()
     }
 
-    // Allow sending with Enter (Shift+Enter for newline if ever needed)
     const handleKeyDown = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
-            if (message.trim() && !sendMutation.isPending) sendMutation.mutate()
+            handleSend()
         }
     }
 
-    const activePartner = conversations.find(c =>
-        c.partner?.id === partnerId
-    )?.partner
+    const activePartner = conversations.find(c => c.partner?.id === partnerId)?.partner
 
     return (
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Marketplace', to: '/marketplace' },
-                { label: 'Profile', to: '/profile' }
+                { label: 'Profile',     to: '/profile' }
             ]} />
 
             <Container fluid className="p-0" style={{ height: 'calc(100vh - 70px)', background: '#F8FAFC' }}>
                 <Row className="g-0 h-100">
 
-                    {/* Conversations Sidebar */}
+                    {/* ── Conversations Sidebar ─────────────────────────────── */}
                     <Col
                         xs={12} md={4} lg={3}
                         className={`border-end h-100 d-flex flex-column ${partnerId ? 'd-none d-md-flex' : 'd-flex'}`}
@@ -98,9 +108,7 @@ export default function MessagesPage() {
                                     <div
                                         key={conv.partner?.id}
                                         className="conversation-item"
-                                        style={{
-                                            backgroundColor: partnerId === conv.partner?.id ? '#F8FAFC' : 'transparent'
-                                        }}
+                                        style={{ backgroundColor: partnerId === conv.partner?.id ? '#F8FAFC' : 'transparent' }}
                                         onClick={() => navigate(`/messages/${conv.partner?.id}`)}
                                     >
                                         <div
@@ -123,9 +131,7 @@ export default function MessagesPage() {
                                                     {conv.lastMessage?.content}
                                                 </span>
                                                 {conv.unreadCount > 0 && (
-                                                    <span className="unread-badge">
-                                                        {conv.unreadCount}
-                                                    </span>
+                                                    <span className="unread-badge">{conv.unreadCount}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -135,7 +141,7 @@ export default function MessagesPage() {
                         </div>
                     </Col>
 
-                    {/* Chat Area */}
+                    {/* ── Chat Area ─────────────────────────────────────────── */}
                     <Col
                         xs={12} md={8} lg={9}
                         className={`h-100 d-flex flex-column ${!partnerId ? 'd-none d-md-flex' : 'd-flex'}`}
@@ -161,12 +167,7 @@ export default function MessagesPage() {
                                     </Button>
                                     <div
                                         className="d-flex align-items-center justify-content-center rounded-circle fw-bold"
-                                        style={{
-                                            width: 40, height: 40,
-                                            backgroundColor: '#E0E000',
-                                            color: '#0F172A',
-                                            flexShrink: 0
-                                        }}
+                                        style={{ width: 40, height: 40, backgroundColor: '#E0E000', color: '#0F172A', flexShrink: 0 }}
                                     >
                                         {activePartner?.name?.charAt(0).toUpperCase() || '?'}
                                     </div>
@@ -202,17 +203,14 @@ export default function MessagesPage() {
                                                         className="message-bubble"
                                                         style={{
                                                             backgroundColor: isMe ? '#E0E000' : '#FFFFFF',
-                                                            color: '#0F172A',
-                                                            alignSelf: isMe ? 'flex-end' : 'flex-start'
+                                                            color:           '#0F172A',
+                                                            alignSelf:       isMe ? 'flex-end' : 'flex-start'
                                                         }}
                                                     >
-                                                        <p className="mb-0" style={{ fontSize: '0.9rem' }}>
-                                                            {msg.content}
-                                                        </p>
+                                                        <p className="mb-0" style={{ fontSize: '0.9rem' }}>{msg.content}</p>
                                                         <span className="message-time">
                                                             {new Date(msg.createdAt).toLocaleTimeString([], {
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
+                                                                hour: '2-digit', minute: '2-digit'
                                                             })}
                                                         </span>
                                                     </div>
@@ -220,7 +218,7 @@ export default function MessagesPage() {
                                             )
                                         })
                                     )}
-                                    {/* Scroll anchor — scrollIntoView targets this */}
+                                    {/* Scroll anchor */}
                                     <div ref={messagesEndRef} />
                                 </div>
 
@@ -228,31 +226,30 @@ export default function MessagesPage() {
                                 <div className="p-3 border-top" style={{ background: '#FFFFFF' }}>
                                     <div className="d-flex gap-2">
                                         <Form.Control
+                                            ref={inputRef}
                                             type="text"
                                             placeholder="Type a message..."
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
                                             onKeyDown={handleKeyDown}
                                             style={{
-                                                borderRadius: '20px',
-                                                borderColor: '#E2E8F0',
+                                                borderRadius:    '20px',
+                                                borderColor:     '#E2E8F0',
                                                 backgroundColor: '#F8FAFC',
-                                                fontFamily: 'Lexend, sans-serif',
-                                                fontSize: '0.9rem'
+                                                fontFamily:      'Lexend, sans-serif',
+                                                fontSize:        '0.9rem'
                                             }}
                                         />
                                         <Button
                                             onClick={handleSend}
                                             disabled={!message.trim() || sendMutation.isPending}
                                             className="d-flex align-items-center justify-content-center border-0 rounded-circle"
-                                            style={{
-                                                width: 44, height: 44,
-                                                backgroundColor: '#E0E000',
-                                                color: '#0F172A',
-                                                flexShrink: 0
-                                            }}
+                                            style={{ width: 44, height: 44, backgroundColor: '#E0E000', color: '#0F172A', flexShrink: 0 }}
                                         >
-                                            <BsSend size={16} />
+                                            {sendMutation.isPending
+                                                ? <Spinner animation="border" size="sm" />
+                                                : <BsSend size={16} />
+                                            }
                                         </Button>
                                     </div>
                                 </div>
