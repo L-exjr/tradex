@@ -5,7 +5,7 @@ export default function TermsPage() {
         <StaticInfoPage title="Terms of service">
             <p>
                 By using TradeX you agree to follow campus rules and use the marketplace responsibly.
-                Replace this text with formal terms before a public launch.
+                TradeX is not liable for any issues that arise from using the app, including but not limited to...
             </p>
         </StaticInfoPage>
     );
