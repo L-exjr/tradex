@@ -19,7 +19,7 @@ app.use(
             if (!origin || allowed.includes(origin)) {
                 return callback(null, true);
             }
-            return callback(null, false);
+            return callback(new Error(`Origin ${origin} not allowed by CORS`));
         },
     })
 );
