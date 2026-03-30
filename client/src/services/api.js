@@ -48,7 +48,7 @@ export const getMe = async () => {
     });
     if (res.status === 401) {
         localStorage.removeItem("token");
-        window.location.href = '/login'
+        window.location.href = '/login';
         return;
     }
     const data = await res.json();
@@ -80,6 +80,10 @@ export const resetPassword = async (token, password) => {
 
 // LISTINGS
 
+// Returns an array of listings. The backend now paginates (page + limit query params).
+// The response shape is { data: [...], pagination: { page, limit, total, pages } }.
+// Callers that only need the array can use getListings(); callers that need
+// pagination metadata can use getListingsPaginated().
 export const getListings = async (filters = {}) => {
     const params = new URLSearchParams(filters).toString();
     const res = await fetch(`${BASE_URL}/listings?${params}`, {
@@ -87,7 +91,18 @@ export const getListings = async (filters = {}) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to fetch listings");
-    return data;
+    // Support both legacy array shape and new paginated shape
+    return Array.isArray(data) ? data : (data.data ?? []);
+};
+
+export const getListingsPaginated = async (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    const res = await fetch(`${BASE_URL}/listings?${params}`, {
+        headers: getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to fetch listings");
+    return data; // { data: [...], pagination: { page, limit, total, pages } }
 };
 
 export const getListing = async (id) => {

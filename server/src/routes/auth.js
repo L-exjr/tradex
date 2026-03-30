@@ -1,4 +1,5 @@
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -7,6 +8,13 @@ const supabase = require('../supabase');
 const multer = require('multer');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const {
+    registerSchema,
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    updateProfileSchema,
+} = require('../lib/schemas');
 
 const transporter =
     process.env.EMAIL_USER && process.env.EMAIL_PASS
@@ -30,13 +38,9 @@ router.get('/public-config', (req, res) => {
 });
 
 // Register account
-router.post('/register', async (req, res) => {
+router.post('/register', validate(registerSchema), async (req, res) => {
     try {
         const { name, email, password, studentId } = req.body;
-
-        if(!email.toLowerCase().endsWith('@st.knust.edu.gh')) {
-            return res.status(400).json({ error: 'Only KNUST emails are allowed' });
-        }
 
         // Check for existing user
         const existing = await prisma.user.findUnique({ where: { email } });
@@ -72,12 +76,12 @@ router.post('/register', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -108,14 +112,12 @@ router.post('/login', async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-
-
 // Get current user
-router.get('/me', require('../middleware/auth'), async (req, res) => {
+router.get('/me', auth, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.user.userId },
@@ -134,35 +136,27 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Forgot password
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email) return res.status(400).json({ error: 'Email is required' });
-
-        if (!email.toLowerCase().endsWith('@st.knust.edu.gh')) {
-            return res.status(400).json({ error: 'Only KNUST student emails are allowed' });
-        }
-
-        // Option A: allow deploy without configuring an email provider.
-        // If mail is not configured, we still return a generic success message.
         const hasEmailConfig = !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
         if (!hasEmailConfig) {
             return res.json({
                 success: true,
-                message: "If that email exists, a reset link has been sent"
+                message: 'If that email exists, a reset link has been sent'
             });
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
-            return res.json({ success: true, message: "If that email exists, a reset link has been sent" });
+            return res.json({ success: true, message: 'If that email exists, a reset link has been sent' });
         }
 
         const token = crypto.randomBytes(32).toString('hex');
@@ -184,33 +178,29 @@ router.post('/forgot-password', async (req, res) => {
         const resetUrl = `${clientOrigin}/reset-password?token=${token}`;
 
         await transporter.sendMail({
-            from: `"TradeX" <${process.env.EMAIL_USER}>` ,
+            from: `"TradeX" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Reset your TradeX password',
             html: `
-                    <p>Hi ${user.name},</p>
-                    <p>Click the link below to reset your password. This link expires in 1 hour.</p>
-                    <a href="${resetUrl}">${resetUrl}</a>
-                    <p>If you didn't request this, ignore this email.</p>
-                `
+                <p>Hi ${user.name},</p>
+                <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+                <a href="${resetUrl}">${resetUrl}</a>
+                <p>If you didn't request this, ignore this email.</p>
+            `
         });
 
         res.json({ success: true, message: 'If that email exists, a reset link has been sent' });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Reset password
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
     try {
-        const { token, password }= req.body;
-
-        if (!token || !password) {
-            return res.status(400).json({ error: 'Token and password are required' });
-        }
+        const { token, password } = req.body;
 
         const user = await prisma.user.findFirst({
             where: {
@@ -238,11 +228,12 @@ router.post('/reset-password', async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-router.put('/me', auth, uploadAvatar.single('avatar'), async (req, res) => {
+// Update profile
+router.put('/me', auth, uploadAvatar.single('avatar'), validate(updateProfileSchema), async (req, res) => {
     try {
         const { name, studentId } = req.body;
         const file = req.file;
@@ -278,7 +269,7 @@ router.put('/me', auth, uploadAvatar.single('avatar'), async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message })
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

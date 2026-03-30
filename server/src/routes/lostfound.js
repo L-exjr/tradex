@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const supabase = require("../supabase");
+const supabase = require('../supabase');
 const prisma = require('../prisma');
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const { createLostFoundSchema, updateLostFoundSchema } = require('../lib/schemas');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -29,11 +31,7 @@ router.get('/', async (req, res) => {
                 images: true,
                 category: true,
                 user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
+                    select: { id: true, name: true, email: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -42,7 +40,7 @@ router.get('/', async (req, res) => {
         res.json(posts);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -55,11 +53,7 @@ router.get('/:id', async (req, res) => {
                 images: true,
                 category: true,
                 user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true
-                    }
+                    select: { id: true, name: true, email: true }
                 }
             }
         });
@@ -69,33 +63,22 @@ router.get('/:id', async (req, res) => {
         res.json(post);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // POST create post (protected)
-router.post('/', auth, upload.array('images', 5), async (req, res) => {
+router.post('/', auth, upload.array('images', 5), validate(createLostFoundSchema), async (req, res) => {
     try {
-        const {
-            title,
-            description,
-            categoryId,
-            type,
-            locationText,
-            dateLostFound
-        } = req.body;
+        const { title, description, categoryId, type, locationText, dateLostFound } = req.body;
         const userId = req.user.userId;
         const files = req.files;
-
-        if (!title || !description || !categoryId || !type || !locationText || !dateLostFound) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
 
         const post = await prisma.lostFoundPost.create({
             data: {
                 title,
                 description,
-                categoryId: parseInt(categoryId),
+                categoryId,
                 type,
                 locationText,
                 dateLostFound: new Date(dateLostFound),
@@ -103,7 +86,6 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
             }
         });
 
-        // Upload images if provided
         if (files && files.length > 0) {
             for (const file of files) {
                 const fileName = `${Date.now()}-${file.originalname}`;
@@ -124,15 +106,11 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
                     .getPublicUrl(fileName);
 
                 await prisma.image.create({
-                    data: {
-                        url: data.publicUrl,
-                        postId: post.id
-                    }
+                    data: { url: data.publicUrl, postId: post.id }
                 });
             }
         }
 
-        // Return post with images
         const full = await prisma.lostFoundPost.findUnique({
             where: { id: post.id },
             include: { images: true, category: true }
@@ -141,27 +119,18 @@ router.post('/', auth, upload.array('images', 5), async (req, res) => {
         res.status(201).json(full);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // PUT update post (protected, owner only)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, validate(updateLostFoundSchema), async (req, res) => {
     try {
-        const {
-            title,
-            description,
-            categoryId,
-            locationText,
-            dateLostFound,
-            status
-        } = req.body;
+        const { title, description, categoryId, locationText, dateLostFound, status } = req.body;
         const userId = req.user.userId;
         const postId = parseInt(req.params.id);
 
-        const existing = await prisma.lostFoundPost.findUnique({
-            where: { id: postId }
-        });
+        const existing = await prisma.lostFoundPost.findUnique({ where: { id: postId } });
 
         if (!existing) return res.status(404).json({ error: 'Post not found' });
         if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
@@ -171,7 +140,7 @@ router.put('/:id', auth, async (req, res) => {
             data: {
                 ...(title && { title }),
                 ...(description && { description }),
-                ...(categoryId && { categoryId: parseInt(categoryId) }),
+                ...(categoryId && { categoryId }),
                 ...(locationText && { locationText }),
                 ...(dateLostFound && { dateLostFound: new Date(dateLostFound) }),
                 ...(status && { status })
@@ -182,7 +151,7 @@ router.put('/:id', auth, async (req, res) => {
         res.json(updated);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -192,21 +161,17 @@ router.delete('/:id', auth, async (req, res) => {
         const userId = req.user.userId;
         const postId = parseInt(req.params.id);
 
-        const existing = await prisma.lostFoundPost.findUnique({
-            where: { id: postId }
-        });
+        const existing = await prisma.lostFoundPost.findUnique({ where: { id: postId } });
 
         if (!existing) return res.status(404).json({ error: 'Post not found' });
         if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
 
-        await prisma.lostFoundPost.delete({
-            where: { id: postId }
-        });
+        await prisma.lostFoundPost.delete({ where: { id: postId } });
 
         res.json({ success: true, message: 'Post deleted' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

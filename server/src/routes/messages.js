@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prisma');
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
+const { sendMessageSchema } = require('../lib/schemas');
 
 // GET all conversations for current user
 router.get('/conversations', auth, async (req, res) => {
     try {
         const userId = req.user.userId;
 
-        // Get latest message per conversation partner
         const messages = await prisma.message.findMany({
             where: {
                 OR: [
@@ -17,22 +18,15 @@ router.get('/conversations', auth, async (req, res) => {
                 ]
             },
             include: {
-                sender: {
-                    select: { id: true, name: true, email: true }
-                },
-                receiver: {
-                    select: { id: true, name: true, email: true }
-                }
+                sender: { select: { id: true, name: true, email: true } },
+                receiver: { select: { id: true, name: true, email: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
 
-        // Group by conversation partner
         const conversations = {};
         for (const msg of messages) {
-            const partnerId = msg.senderId === userId
-                ? msg.receiverId
-                : msg.senderId;
+            const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
 
             if (!conversations[partnerId]) {
                 conversations[partnerId] = {
@@ -42,7 +36,6 @@ router.get('/conversations', auth, async (req, res) => {
                 };
             }
 
-            // Count unread messages from partner
             if (msg.receiverId === userId && !msg.readStatus) {
                 conversations[partnerId].unreadCount++;
             }
@@ -51,7 +44,7 @@ router.get('/conversations', auth, async (req, res) => {
         res.json(Object.values(conversations));
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -69,73 +62,49 @@ router.get('/:partnerId', auth, async (req, res) => {
                 ]
             },
             include: {
-                sender: {
-                    select: { id: true, name: true, email: true }
-                },
-                receiver: {
-                    select: { id: true, name: true, email: true }
-                }
+                sender: { select: { id: true, name: true, email: true } },
+                receiver: { select: { id: true, name: true, email: true } }
             },
             orderBy: { createdAt: 'asc' }
         });
 
-        // Mark messages as read
         await prisma.message.updateMany({
-            where: {
-                senderId: partnerId,
-                receiverId: userId,
-                readStatus: false
-            },
+            where: { senderId: partnerId, receiverId: userId, readStatus: false },
             data: { readStatus: true }
         });
 
         res.json(messages);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // POST send a message (protected)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, validate(sendMessageSchema), async (req, res) => {
     try {
         const { receiverId, content } = req.body;
         const senderId = req.user.userId;
-
-        if (!receiverId || !content) {
-            return res.status(400).json({ error: 'receiverId and content are required' });
-        }
 
         if (senderId === receiverId) {
             return res.status(400).json({ error: 'Cannot send message to yourself' });
         }
 
-        // Check receiver exists
-        const receiver = await prisma.user.findUnique({
-            where: { id: receiverId }
-        });
+        const receiver = await prisma.user.findUnique({ where: { id: receiverId } });
         if (!receiver) return res.status(404).json({ error: 'Receiver not found' });
 
         const message = await prisma.message.create({
-            data: {
-                senderId,
-                receiverId,
-                content
-            },
+            data: { senderId, receiverId, content },
             include: {
-                sender: {
-                    select: { id: true, name: true, email: true }
-                },
-                receiver: {
-                    select: { id: true, name: true, email: true }
-                }
+                sender: { select: { id: true, name: true, email: true } },
+                receiver: { select: { id: true, name: true, email: true } }
             }
         });
 
         res.status(201).json(message);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -145,21 +114,17 @@ router.delete('/:id', auth, async (req, res) => {
         const userId = req.user.userId;
         const messageId = parseInt(req.params.id);
 
-        const existing = await prisma.message.findUnique({
-            where: { id: messageId }
-        });
+        const existing = await prisma.message.findUnique({ where: { id: messageId } });
 
         if (!existing) return res.status(404).json({ error: 'Message not found' });
         if (existing.senderId !== userId) return res.status(403).json({ error: 'Forbidden' });
 
-        await prisma.message.delete({
-            where: { id: messageId }
-        });
+        await prisma.message.delete({ where: { id: messageId } });
 
         res.json({ success: true, message: 'Message deleted' });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

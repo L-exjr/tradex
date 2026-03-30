@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap'
 import { BsArrowLeft, BsSend, BsPersonCircle } from 'react-icons/bs'
@@ -13,19 +13,28 @@ export default function MessagesPage() {
     const { user } = useAuth()
     const queryClient = useQueryClient()
     const [message, setMessage] = useState('')
+    const messagesEndRef = useRef(null)
 
+    // Poll conversations every 10 s so unread badges stay fresh
     const { data: conversations = [], isLoading: loadingConversations } = useQuery({
         queryKey: ['conversations'],
         queryFn: getConversations,
-        enabled: !!user
+        enabled: !!user,
+        refetchInterval: 10000
     })
 
+    // Poll active thread every 5 s for new incoming messages
     const { data: messages = [], isLoading: loadingMessages } = useQuery({
         queryKey: ['messages', partnerId],
         queryFn: () => getMessages(partnerId),
         enabled: !!partnerId,
         refetchInterval: 5000
     })
+
+    // Auto-scroll to the bottom whenever the messages array changes
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, [messages])
 
     const sendMutation = useMutation({
         mutationFn: () => sendMessage(partnerId, message),
@@ -40,6 +49,14 @@ export default function MessagesPage() {
         e.preventDefault()
         if (!message.trim()) return
         sendMutation.mutate()
+    }
+
+    // Allow sending with Enter (Shift+Enter for newline if ever needed)
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            if (message.trim() && !sendMutation.isPending) sendMutation.mutate()
+        }
     }
 
     const activePartner = conversations.find(c =>
@@ -203,40 +220,41 @@ export default function MessagesPage() {
                                             )
                                         })
                                     )}
+                                    {/* Scroll anchor — scrollIntoView targets this */}
+                                    <div ref={messagesEndRef} />
                                 </div>
 
                                 {/* Message Input */}
                                 <div className="p-3 border-top" style={{ background: '#FFFFFF' }}>
-                                    <Form onSubmit={handleSend}>
-                                        <div className="d-flex gap-2">
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Type a message..."
-                                                value={message}
-                                                onChange={(e) => setMessage(e.target.value)}
-                                                style={{
-                                                    borderRadius: '20px',
-                                                    borderColor: '#E2E8F0',
-                                                    backgroundColor: '#F8FAFC',
-                                                    fontFamily: 'Lexend, sans-serif',
-                                                    fontSize: '0.9rem'
-                                                }}
-                                            />
-                                            <Button
-                                                type="submit"
-                                                disabled={!message.trim() || sendMutation.isPending}
-                                                className="d-flex align-items-center justify-content-center border-0 rounded-circle"
-                                                style={{
-                                                    width: 44, height: 44,
-                                                    backgroundColor: '#E0E000',
-                                                    color: '#0F172A',
-                                                    flexShrink: 0
-                                                }}
-                                            >
-                                                <BsSend size={16} />
-                                            </Button>
-                                        </div>
-                                    </Form>
+                                    <div className="d-flex gap-2">
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Type a message..."
+                                            value={message}
+                                            onChange={(e) => setMessage(e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            style={{
+                                                borderRadius: '20px',
+                                                borderColor: '#E2E8F0',
+                                                backgroundColor: '#F8FAFC',
+                                                fontFamily: 'Lexend, sans-serif',
+                                                fontSize: '0.9rem'
+                                            }}
+                                        />
+                                        <Button
+                                            onClick={handleSend}
+                                            disabled={!message.trim() || sendMutation.isPending}
+                                            className="d-flex align-items-center justify-content-center border-0 rounded-circle"
+                                            style={{
+                                                width: 44, height: 44,
+                                                backgroundColor: '#E0E000',
+                                                color: '#0F172A',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <BsSend size={16} />
+                                        </Button>
+                                    </div>
                                 </div>
                             </>
                         )}
