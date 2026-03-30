@@ -8,13 +8,16 @@ const multer = require('multer');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-})
+const transporter =
+    process.env.EMAIL_USER && process.env.EMAIL_PASS
+        ? nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS,
+              },
+          })
+        : null;
 
 const uploadAvatar = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
@@ -137,6 +140,16 @@ router.post('/forgot-password', async (req, res) => {
 
         if (!email.toLowerCase().endsWith('@st.knust.edu.gh')) {
             return res.status(400).json({ error: 'Only KNUST student emails are allowed' });
+        }
+
+        // Option A: allow deploy without configuring an email provider.
+        // If mail is not configured, we still return a generic success message.
+        const hasEmailConfig = !!(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+        if (!hasEmailConfig) {
+            return res.json({
+                success: true,
+                message: "If that email exists, a reset link has been sent"
+            });
         }
 
         const user = await prisma.user.findUnique({ where: { email } });

@@ -78,7 +78,7 @@ function LoginPage() {
                                 <BsPersonCircle size={28} />
                                 <h2 className="fw-bold mt-3">Welcome!</h2>
                                 <p className="text-muted small">
-                                    Enter your credentials to access your student<br /> account
+                                    Enter your credentials to access your student account
                                 </p>
                             </div>
 
