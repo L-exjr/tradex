@@ -1897,6 +1897,7 @@ export namespace Prisma {
     passwordHash: string | null
     studentId: string | null
     avatarUrl: string | null
+    avatarPath: string | null
     createdAt: Date | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -1909,6 +1910,7 @@ export namespace Prisma {
     passwordHash: string | null
     studentId: string | null
     avatarUrl: string | null
+    avatarPath: string | null
     createdAt: Date | null
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -1921,6 +1923,7 @@ export namespace Prisma {
     passwordHash: number
     studentId: number
     avatarUrl: number
+    avatarPath: number
     createdAt: number
     resetToken: number
     resetTokenExpiry: number
@@ -1935,6 +1938,7 @@ export namespace Prisma {
     passwordHash?: true
     studentId?: true
     avatarUrl?: true
+    avatarPath?: true
     createdAt?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -1947,6 +1951,7 @@ export namespace Prisma {
     passwordHash?: true
     studentId?: true
     avatarUrl?: true
+    avatarPath?: true
     createdAt?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -1959,6 +1964,7 @@ export namespace Prisma {
     passwordHash?: true
     studentId?: true
     avatarUrl?: true
+    avatarPath?: true
     createdAt?: true
     resetToken?: true
     resetTokenExpiry?: true
@@ -2044,6 +2050,7 @@ export namespace Prisma {
     passwordHash: string
     studentId: string | null
     avatarUrl: string | null
+    avatarPath: string | null
     createdAt: Date
     resetToken: string | null
     resetTokenExpiry: Date | null
@@ -2073,6 +2080,7 @@ export namespace Prisma {
     passwordHash?: boolean
     studentId?: boolean
     avatarUrl?: boolean
+    avatarPath?: boolean
     createdAt?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -2094,6 +2102,7 @@ export namespace Prisma {
     passwordHash?: boolean
     studentId?: boolean
     avatarUrl?: boolean
+    avatarPath?: boolean
     createdAt?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -2106,6 +2115,7 @@ export namespace Prisma {
     passwordHash?: boolean
     studentId?: boolean
     avatarUrl?: boolean
+    avatarPath?: boolean
     createdAt?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
@@ -2118,12 +2128,13 @@ export namespace Prisma {
     passwordHash?: boolean
     studentId?: boolean
     avatarUrl?: boolean
+    avatarPath?: boolean
     createdAt?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "studentId" | "avatarUrl" | "createdAt" | "resetToken" | "resetTokenExpiry", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "passwordHash" | "studentId" | "avatarUrl" | "avatarPath" | "createdAt" | "resetToken" | "resetTokenExpiry", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     listings?: boolean | User$listingsArgs<ExtArgs>
     posts?: boolean | User$postsArgs<ExtArgs>
@@ -2157,6 +2168,7 @@ export namespace Prisma {
       passwordHash: string
       studentId: string | null
       avatarUrl: string | null
+      avatarPath: string | null
       createdAt: Date
       resetToken: string | null
       resetTokenExpiry: Date | null
@@ -2597,6 +2609,7 @@ export namespace Prisma {
     readonly passwordHash: FieldRef<"User", 'String'>
     readonly studentId: FieldRef<"User", 'String'>
     readonly avatarUrl: FieldRef<"User", 'String'>
+    readonly avatarPath: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
@@ -12517,6 +12530,7 @@ export namespace Prisma {
     passwordHash: 'passwordHash',
     studentId: 'studentId',
     avatarUrl: 'avatarUrl',
+    avatarPath: 'avatarPath',
     createdAt: 'createdAt',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry'
@@ -12783,6 +12797,7 @@ export namespace Prisma {
     passwordHash?: StringFilter<"User"> | string
     studentId?: StringNullableFilter<"User"> | string | null
     avatarUrl?: StringNullableFilter<"User"> | string | null
+    avatarPath?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -12803,6 +12818,7 @@ export namespace Prisma {
     passwordHash?: SortOrder
     studentId?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
+    avatarPath?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
@@ -12826,6 +12842,7 @@ export namespace Prisma {
     name?: StringFilter<"User"> | string
     passwordHash?: StringFilter<"User"> | string
     avatarUrl?: StringNullableFilter<"User"> | string | null
+    avatarPath?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
@@ -12846,6 +12863,7 @@ export namespace Prisma {
     passwordHash?: SortOrder
     studentId?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
+    avatarPath?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
@@ -12864,6 +12882,7 @@ export namespace Prisma {
     passwordHash?: StringWithAggregatesFilter<"User"> | string
     studentId?: StringNullableWithAggregatesFilter<"User"> | string | null
     avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
+    avatarPath?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
@@ -13426,6 +13445,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -13446,6 +13466,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -13466,6 +13487,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13486,6 +13508,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13506,6 +13529,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -13518,6 +13542,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13530,6 +13555,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -14162,6 +14188,7 @@ export namespace Prisma {
     passwordHash?: SortOrder
     studentId?: SortOrder
     avatarUrl?: SortOrder
+    avatarPath?: SortOrder
     createdAt?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -14174,6 +14201,7 @@ export namespace Prisma {
     passwordHash?: SortOrder
     studentId?: SortOrder
     avatarUrl?: SortOrder
+    avatarPath?: SortOrder
     createdAt?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -14186,6 +14214,7 @@ export namespace Prisma {
     passwordHash?: SortOrder
     studentId?: SortOrder
     avatarUrl?: SortOrder
+    avatarPath?: SortOrder
     createdAt?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
@@ -16556,6 +16585,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -16575,6 +16605,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -16722,6 +16753,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -16741,6 +16773,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -16858,6 +16891,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -16877,6 +16911,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -16976,6 +17011,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -16995,6 +17031,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17214,6 +17251,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17233,6 +17271,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17257,6 +17296,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17276,6 +17316,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17311,6 +17352,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17330,6 +17372,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17360,6 +17403,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17379,6 +17423,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17432,6 +17477,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17451,6 +17497,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17475,6 +17522,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17494,6 +17542,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17569,6 +17618,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17588,6 +17638,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17618,6 +17669,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17637,6 +17689,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17656,6 +17709,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17675,6 +17729,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17776,6 +17831,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17795,6 +17851,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17892,6 +17949,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17911,6 +17969,7 @@ export namespace Prisma {
     passwordHash: string
     studentId?: string | null
     avatarUrl?: string | null
+    avatarPath?: string | null
     createdAt?: Date | string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
@@ -17980,6 +18039,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -17999,6 +18059,7 @@ export namespace Prisma {
     passwordHash?: StringFieldUpdateOperationsInput | string
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarPath?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

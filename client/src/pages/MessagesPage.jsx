@@ -77,7 +77,7 @@ export default function MessagesPage() {
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Marketplace', to: '/marketplace' },
-                { label: 'Profile',     to: '/profile' }
+                { label: 'Lost & Found',  to: '/lostfound' },
             ]} />
 
             <Container fluid className="p-0" style={{ height: 'calc(100vh - 70px)', background: '#F8FAFC' }}>

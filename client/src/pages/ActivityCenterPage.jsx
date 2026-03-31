@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Row, Col, Button, Spinner } from 'react-bootstrap'
 import {
-    BsChatDots, BsCheckCircle, BsTruck,
-    BsClock, BsBoxSeam
+    BsCheckCircle, BsClock, BsBoxSeam, BsBell
 } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
 import LegalLinks from '../components/LegalLinks'
@@ -46,41 +45,48 @@ export default function ActivityCenterPage() {
 
     const getStatusLabel = (status) => status.toUpperCase()
 
-    const notifications = [
-        {
-            id: 1,
-            icon: <BsChatDots size={20} />,
-            iconBg: '#fef3c7',
-            iconColor: '#d97706',
-            title: 'New message received',
-            description: 'Someone sent you a message about a listing.',
-            time: 'Just now',
-            unread: true,
-            action: () => navigate('/messages')
-        },
-        {
-            id: 2,
+    // Build real notifications from live data
+    const notifications = []
+
+    if (activeOrders.length > 0) {
+        notifications.push({
+            id: 'active-orders',
             icon: <BsCheckCircle size={20} />,
             iconBg: '#dcfce7',
             iconColor: '#16a34a',
-            title: 'Transaction update',
-            description: `You have ${activeOrders.length} active order${activeOrders.length !== 1 ? 's' : ''}.`,
-            time: 'Recently',
-            unread: activeOrders.length > 0,
+            title: 'Active transactions',
+            description: `You have ${activeOrders.length} pending order${activeOrders.length !== 1 ? 's' : ''} awaiting action.`,
+            unread: true,
             action: () => setActiveTab('Orders')
-        },
-        {
-            id: 3,
-            icon: <BsTruck size={20} />,
-            iconBg: '#e0e7ff',
-            iconColor: '#3b82f6',
-            title: 'Marketplace activity',
-            description: 'Check out new listings in the marketplace.',
-            time: 'Today',
-            unread: false,
-            action: () => navigate('/marketplace')
+        })
+    }
+
+    activeOrders.forEach(t => {
+        if (t.sellerId === user?.id) {
+            notifications.push({
+                id: `sell-${t.id}`,
+                icon: <BsCheckCircle size={20} />,
+                iconBg: '#fef3c7',
+                iconColor: '#d97706',
+                title: 'Awaiting your confirmation',
+                description: `"${t.listing?.title}" — mark as completed once the buyer has paid.`,
+                unread: true,
+                action: () => setActiveTab('Orders')
+            })
         }
-    ]
+        if (t.buyerId === user?.id) {
+            notifications.push({
+                id: `buy-${t.id}`,
+                icon: <BsClock size={20} />,
+                iconBg: '#e0e7ff',
+                iconColor: '#4f46e5',
+                title: 'Purchase pending',
+                description: `"${t.listing?.title}" — waiting for the seller to confirm.`,
+                unread: false,
+                action: () => setActiveTab('Orders')
+            })
+        }
+    })
 
     return (
         <>
@@ -89,7 +95,8 @@ export default function ActivityCenterPage() {
                 border={true}
                 rightLinks={[
                     { label: 'Marketplace', to: '/marketplace' },
-                    { label: 'Profile', to: '/profile' }
+                    { label: 'Lost & Found',  to: '/lostfound' },
+
                 ]}
             />
 
@@ -128,7 +135,7 @@ export default function ActivityCenterPage() {
                                 <h2 className="fw-bold mb-0" style={{ fontSize: '1.1rem' }}>
                                     {activeTab === 'Notifications' ? 'Recent Updates' : 'Your Orders'}
                                 </h2>
-                                {activeTab === 'Notifications' && (
+                                {activeTab === 'Notifications' && notifications.filter(n => n.unread).length > 0 && (
                                     <span className="activity-badge-new">
                                         {notifications.filter(n => n.unread).length} New
                                     </span>
@@ -137,51 +144,44 @@ export default function ActivityCenterPage() {
 
                             {activeTab === 'Notifications' && (
                                 <div className="d-flex flex-column gap-3">
-                                    {notifications.map(notif => (
+                                    {isLoading ? (
+                                        <div className="d-flex justify-content-center py-5">
+                                            <Spinner animation="border" style={{ color: '#E0E000' }} />
+                                        </div>
+                                    ) : notifications.length === 0 ? (
                                         <div
-                                            key={notif.id}
                                             className="notification-card"
-                                            onClick={notif.action}
-                                            style={{ cursor: 'pointer' }}
+                                            style={{ border: '1px dashed #e5e7eb', background: 'transparent', boxShadow: 'none' }}
                                         >
+                                            <div className="notif-icon-wrapper" style={{ backgroundColor: '#f3f4f6', color: '#9ca3af' }}>
+                                                <BsBell size={18} />
+                                            </div>
+                                            <p className="notif-desc mb-0" style={{ color: '#9ca3af' }}>
+                                                No new notifications — you're all caught up!
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        notifications.map(notif => (
                                             <div
-                                                className="notif-icon-wrapper"
-                                                style={{
-                                                    backgroundColor: notif.iconBg,
-                                                    color: notif.iconColor
-                                                }}
+                                                key={notif.id}
+                                                className="notification-card"
+                                                onClick={notif.action}
+                                                style={{ cursor: 'pointer' }}
                                             >
-                                                {notif.icon}
-                                            </div>
-                                            <div className="flex-grow-1">
-                                                <div className="d-flex justify-content-between align-items-baseline mb-1">
-                                                    <h4 className="notif-title">{notif.title}</h4>
-                                                    <span className="notif-time">{notif.time}</span>
+                                                <div
+                                                    className="notif-icon-wrapper"
+                                                    style={{ backgroundColor: notif.iconBg, color: notif.iconColor }}
+                                                >
+                                                    {notif.icon}
                                                 </div>
-                                                <p className="notif-desc">{notif.description}</p>
+                                                <div className="flex-grow-1">
+                                                    <h4 className="notif-title mb-1">{notif.title}</h4>
+                                                    <p className="notif-desc">{notif.description}</p>
+                                                </div>
+                                                {notif.unread && <div className="unread-dot" />}
                                             </div>
-                                            {notif.unread && <div className="unread-dot" />}
-                                        </div>
-                                    ))}
-
-                                    <div
-                                        className="notification-card"
-                                        style={{
-                                            border: '1px dashed #e5e7eb',
-                                            background: 'transparent',
-                                            boxShadow: 'none'
-                                        }}
-                                    >
-                                        <div
-                                            className="notif-icon-wrapper"
-                                            style={{ backgroundColor: '#f3f4f6', color: '#9ca3af' }}
-                                        >
-                                            <BsClock size={18} />
-                                        </div>
-                                        <p className="notif-desc mb-0" style={{ color: '#9ca3af' }}>
-                                            You have no more notifications for today.
-                                        </p>
-                                    </div>
+                                        ))
+                                    )}
                                 </div>
                             )}
 
@@ -197,11 +197,7 @@ export default function ActivityCenterPage() {
                                             <p>No orders yet.</p>
                                             <Button
                                                 onClick={() => navigate('/marketplace')}
-                                                style={{
-                                                    backgroundColor: '#E0E000',
-                                                    border: 'none',
-                                                    color: '#0F172A'
-                                                }}
+                                                style={{ backgroundColor: '#E0E000', border: 'none', color: '#0F172A' }}
                                             >
                                                 Browse Marketplace
                                             </Button>
@@ -213,38 +209,20 @@ export default function ActivityCenterPage() {
                                                     <img
                                                         src={transaction.listing.images[0].url}
                                                         alt={transaction.listing.title}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover'
-                                                        }}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     />
                                                 </div>
                                             )}
                                             <div className="p-3">
                                                 <div className="d-flex justify-content-between align-items-center mb-2">
-                                                    <h4 className="order-name">
-                                                        {transaction.listing?.title}
-                                                    </h4>
-                                                    <span className="order-price">
-                                                        GH₵{transaction.price?.toFixed(2)}
-                                                    </span>
+                                                    <h4 className="order-name">{transaction.listing?.title}</h4>
+                                                    <span className="order-price">GH₵{transaction.price?.toFixed(2)}</span>
                                                 </div>
                                                 <div className="d-flex align-items-center gap-2 mb-3">
-                                                    <span
-                                                        className="status-dot"
-                                                        style={{
-                                                            backgroundColor: getStatusColor(transaction.status)
-                                                        }}
-                                                    />
-                                                    <span className="status-text">
-                                                        {getStatusLabel(transaction.status)}
-                                                    </span>
+                                                    <span className="status-dot" style={{ backgroundColor: getStatusColor(transaction.status) }} />
+                                                    <span className="status-text">{getStatusLabel(transaction.status)}</span>
                                                     <span className="text-muted small ms-auto">
-                                                        {transaction.buyerId === user?.id
-                                                            ? 'You are buying'
-                                                            : 'You are selling'
-                                                        }
+                                                        {transaction.buyerId === user?.id ? 'You are buying' : 'You are selling'}
                                                     </span>
                                                 </div>
 
@@ -254,15 +232,8 @@ export default function ActivityCenterPage() {
                                                             <Col>
                                                                 <Button
                                                                     className="w-100 border-0 fw-bold"
-                                                                    style={{
-                                                                        backgroundColor: '#E0E000',
-                                                                        color: '#0F172A',
-                                                                        borderRadius: '8px'
-                                                                    }}
-                                                                    onClick={() => updateMutation.mutate({
-                                                                        id: transaction.id,
-                                                                        status: 'completed'
-                                                                    })}
+                                                                    style={{ backgroundColor: '#E0E000', color: '#0F172A', borderRadius: '8px' }}
+                                                                    onClick={() => updateMutation.mutate({ id: transaction.id, status: 'completed' })}
                                                                     disabled={updateMutation.isPending}
                                                                 >
                                                                     Mark Completed
@@ -275,10 +246,7 @@ export default function ActivityCenterPage() {
                                                                     className="w-100 fw-bold"
                                                                     variant="outline-danger"
                                                                     style={{ borderRadius: '8px' }}
-                                                                    onClick={() => updateMutation.mutate({
-                                                                        id: transaction.id,
-                                                                        status: 'cancelled'
-                                                                    })}
+                                                                    onClick={() => updateMutation.mutate({ id: transaction.id, status: 'cancelled' })}
                                                                     disabled={updateMutation.isPending}
                                                                 >
                                                                     Cancel
@@ -289,14 +257,9 @@ export default function ActivityCenterPage() {
                                                             <Button
                                                                 className="w-100 fw-bold"
                                                                 variant="outline-secondary"
-                                                                style={{
-                                                                    borderRadius: '8px',
-                                                                    borderColor: '#e0e0e0'
-                                                                }}
+                                                                style={{ borderRadius: '8px', borderColor: '#e0e0e0' }}
                                                                 onClick={() => navigate(`/messages/${
-                                                                    transaction.buyerId === user?.id
-                                                                        ? transaction.sellerId
-                                                                        : transaction.buyerId
+                                                                    transaction.buyerId === user?.id ? transaction.sellerId : transaction.buyerId
                                                                 }`)}
                                                             >
                                                                 Message
@@ -313,9 +276,7 @@ export default function ActivityCenterPage() {
 
                         {/* Right Column */}
                         <Col xs={12} lg={4}>
-                            <h2 className="fw-bold mb-3" style={{ fontSize: '1.1rem' }}>
-                                Active Orders
-                            </h2>
+                            <h2 className="fw-bold mb-3" style={{ fontSize: '1.1rem' }}>Active Orders</h2>
 
                             {isLoading ? (
                                 <div className="d-flex justify-content-center py-3">
@@ -337,26 +298,17 @@ export default function ActivityCenterPage() {
                                                     <img
                                                         src={order.listing.images[0].url}
                                                         alt={order.listing.title}
-                                                        style={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'cover'
-                                                        }}
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                     />
                                                 </div>
                                             )}
                                             <div className="p-3">
                                                 <div className="d-flex justify-content-between align-items-center mb-2">
                                                     <h4 className="order-name">{order.listing?.title}</h4>
-                                                    <span className="order-price">
-                                                        GH₵{order.price?.toFixed(2)}
-                                                    </span>
+                                                    <span className="order-price">GH₵{order.price?.toFixed(2)}</span>
                                                 </div>
                                                 <div className="d-flex align-items-center gap-2">
-                                                    <span
-                                                        className="status-dot"
-                                                        style={{ backgroundColor: '#d97706' }}
-                                                    />
+                                                    <span className="status-dot" style={{ backgroundColor: '#d97706' }} />
                                                     <span className="status-text">PENDING</span>
                                                 </div>
                                             </div>

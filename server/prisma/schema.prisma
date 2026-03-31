@@ -36,6 +36,7 @@ model User {
   passwordHash String
   studentId    String?   @unique
   avatarUrl    String?
+  avatarPath   String?
   createdAt    DateTime  @default(now())
   resetToken   String?
   resetTokenExpiry DateTime?

@@ -1,31 +1,15 @@
 const express      = require('express');
 const router       = express.Router();
 const multer       = require('multer');
-const supabase     = require('../supabase');
 const prisma       = require('../prisma');
 const auth         = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
 const validate     = require('../middleware/validate');
 const log          = require('../lib/logger');
+const uploadImages = require('../lib/uploadImages');
 const { createLostFoundSchema, updateLostFoundSchema } = require('../lib/schemas');
 
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits:  { fileSize: 5 * 1024 * 1024 }
-});
-
-async function uploadImages(files, postId) {
-    for (const file of files) {
-        const fileName = `lostfound/${Date.now()}-${file.originalname}`;
-        const { error } = await supabase
-            .storage
-            .from('item-images')
-            .upload(fileName, file.buffer, { contentType: file.mimetype, upsert: true });
-        if (error) throw error;
-        const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
-        await prisma.image.create({ data: { url: data.publicUrl, postId } });
-    }
-}
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // GET /api/lostfound
 router.get('/', asyncHandler(async (req, res) => {
@@ -62,6 +46,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 // POST /api/lostfound
+// uploadImages() validates MIME types before uploading
 router.post('/', auth, upload.array('images', 5), validate(createLostFoundSchema), asyncHandler(async (req, res) => {
     const { title, description, categoryId, type, locationText, dateLostFound } = req.body;
     const userId = req.user.userId;
@@ -70,7 +55,9 @@ router.post('/', auth, upload.array('images', 5), validate(createLostFoundSchema
         data: { title, description, categoryId, type, locationText, dateLostFound: new Date(dateLostFound), userId }
     });
 
-    if (req.files?.length > 0) await uploadImages(req.files, post.id);
+    if (req.files?.length > 0) {
+        await uploadImages(req.files, 'lostfound', { postId: post.id });
+    }
 
     const full = await prisma.lostFoundPost.findUnique({
         where:   { id: post.id },

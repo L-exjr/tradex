@@ -1,15 +1,16 @@
-const express    = require('express');
-const bcrypt     = require('bcryptjs');
-const jwt        = require('jsonwebtoken');
-const crypto     = require('crypto');
-const multer     = require('multer');
-const nodemailer = require('nodemailer');
-const prisma     = require('../prisma');
-const supabase   = require('../supabase');
-const auth       = require('../middleware/auth');
+const express      = require('express');
+const bcrypt       = require('bcryptjs');
+const jwt          = require('jsonwebtoken');
+const crypto       = require('crypto');
+const multer       = require('multer');
+const nodemailer   = require('nodemailer');
+const prisma       = require('../prisma');
+const supabase     = require('../supabase');
+const auth         = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
-const validate   = require('../middleware/validate');
-const log        = require('../lib/logger');
+const validate     = require('../middleware/validate');
+const log          = require('../lib/logger');
+const { assertImageMime } = require('../lib/uploadImages');
 const {
     registerSchema,
     loginSchema,
@@ -19,7 +20,10 @@ const {
 } = require('../lib/schemas');
 
 const router       = express.Router();
-const uploadAvatar = multer({ storage: multer.memoryStorage() });
+const uploadAvatar = multer({
+    storage: multer.memoryStorage(),
+    limits:  { fileSize: 2 * 1024 * 1024 }
+});
 
 const transporter =
     process.env.EMAIL_USER && process.env.EMAIL_PASS
@@ -101,10 +105,7 @@ router.post('/forgot-password', validate(forgotPasswordSchema), asyncHandler(asy
     const token  = crypto.randomBytes(32).toString('hex');
     const expiry = new Date(Date.now() + 60 * 60 * 1000);
 
-    await prisma.user.update({
-        where: { email },
-        data:  { resetToken: token, resetTokenExpiry: expiry }
-    });
+    await prisma.user.update({ where: { email }, data: { resetToken: token, resetTokenExpiry: expiry } });
 
     const base     = (process.env.CLIENT_ORIGIN || 'http://localhost:5173').replace(/\/$/, '');
     const resetUrl = `${base}/reset-password?token=${token}`;
@@ -147,32 +148,68 @@ router.post('/reset-password', validate(resetPasswordSchema), asyncHandler(async
     res.ok({ success: true, message: 'Password updated successfully' });
 }));
 
-// PUT /api/auth/me
+// PUT /api/auth/me — update profile + optional avatar upload
 router.put('/me', auth, uploadAvatar.single('avatar'), validate(updateProfileSchema), asyncHandler(async (req, res) => {
     const { name, studentId } = req.body;
-    let avatarUrl;
+    let avatarUrl, avatarPath;
 
     if (req.file) {
-        const fileName = `avatars/${req.user.userId}-${Date.now()}`;
+        assertImageMime(req.file);
+
+        const safeName = req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const fileName = `avatars/${req.user.userId}-${Date.now()}-${safeName}`;
+
         const { error } = await supabase.storage
             .from('item-images')
             .upload(fileName, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
         if (error) throw error;
+
         const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
-        avatarUrl = data.publicUrl;
+        avatarUrl  = data.publicUrl;
+        avatarPath = fileName; // <-- save path for deletion later
         log.info('Avatar uploaded', { userId: req.user.userId });
     }
 
     const user = await prisma.user.update({
-        where:  { id: req.user.userId },
+        where: { id: req.user.userId },
         data: {
-            ...(name                  && { name }),
+            ...(name && { name }),
             ...(studentId !== undefined && { studentId }),
-            ...(avatarUrl             && { avatarUrl })
+            ...(avatarUrl && { avatarUrl }),
+            ...(avatarPath && { avatarPath })
         },
         select: { id: true, name: true, email: true, studentId: true, avatarUrl: true, createdAt: true }
     });
 
+    res.ok(user);
+}));
+
+// DELETE /api/auth/me/avatar — remove profile photo (sets avatarUrl to null + delete storage)
+router.delete('/me/avatar', auth, asyncHandler(async (req, res) => {
+    // Fetch the user first to get the avatarPath
+    const userRecord = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { avatarUrl: true, avatarPath: true }
+    });
+
+    if (userRecord?.avatarPath) {
+        // Delete from Supabase storage
+        const { error } = await supabase.storage
+            .from('item-images')
+            .remove([userRecord.avatarPath]);
+        if (error) {
+            console.error('Supabase avatar deletion error:', error);
+        }
+    }
+
+    // Remove avatar from DB
+    const user = await prisma.user.update({
+        where: { id: req.user.userId },
+        data: { avatarUrl: null, avatarPath: null },
+        select: { id: true, name: true, email: true, studentId: true, avatarUrl: true, createdAt: true }
+    });
+
+    log.info('Avatar removed', { userId: req.user.userId });
     res.ok(user);
 }));
 

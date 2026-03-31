@@ -6,6 +6,7 @@ const cors        = require('cors');
 const helmet      = require('helmet');
 const compression = require('compression');
 const rateLimit   = require('express-rate-limit');
+const multer      = require('multer');
 
 const log             = require('./lib/logger');
 const responseHelpers = require('./middleware/responseHelpers');
@@ -41,12 +42,10 @@ app.use(
 app.use(express.json());
 app.set('trust proxy', 1);
 
-// ── Consistent response helpers on every res object ───────────────────────────
+// ── Consistent response shape on every res object ────────────────────────────
 app.use(responseHelpers);
 
 // ── HTTP request logger ───────────────────────────────────────────────────────
-// Logs method, path, status, and duration for every request.
-// Skipped in production to avoid log noise (Railway already records access logs).
 app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
@@ -100,13 +99,33 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/reports',      require('./routes/reports'));
 app.use('/api/saved',        require('./routes/saved'));
 
-// Health check
+// Health check — used by railway.json healthcheckPath
 app.get('/api', (_req, res) => {
     res.json({ ok: true, env: process.env.NODE_ENV || 'development' });
 });
 
 // ── Global error handler ──────────────────────────────────────────────────────
+// Order matters: multer errors are checked first so they produce clean JSON
+// instead of Express's default HTML error page.
 app.use((err, req, res, _next) => {
+    // Multer: file too large
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'File too large. Maximum size is 5 MB per image.' });
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({ error: 'Unexpected file field in upload.' });
+        }
+        // Any other multer error
+        return res.status(400).json({ error: err.message });
+    }
+
+    // Our own typed errors from services / uploadImages (err.status is set explicitly)
+    if (err.status && err.status < 500) {
+        return res.status(err.status).json({ error: err.message });
+    }
+
+    // Unexpected server errors — never leak details in production
     log.error('Unhandled error', {
         method:  req.method,
         path:    req.path,
@@ -115,7 +134,7 @@ app.use((err, req, res, _next) => {
     });
 
     const isDev = process.env.NODE_ENV !== 'production';
-    res.status(err.status || 500).json({
+    res.status(500).json({
         error: isDev ? err.message : 'Internal server error',
     });
 });
@@ -126,9 +145,9 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 app.listen(PORT, HOST, () => {
     log.info('Server started', {
-        host: HOST,
-        port: PORT,
-        env:  process.env.NODE_ENV || 'development',
+        host:    HOST,
+        port:    PORT,
+        env:     process.env.NODE_ENV || 'development',
         origins: parseAllowedOrigins(),
     });
 });

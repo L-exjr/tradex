@@ -183,7 +183,7 @@ export default function ListNewItemPage() {
                                             min="0"
                                             step="0.01"
                                         />
-                                        <span className="currency-label">GH₵</span>
+                                        <span className="currency-label">GHS</span>
                                     </div>
                                     {errors.price && (
                                         <div className="text-danger small mt-1">{errors.price}</div>

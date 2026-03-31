@@ -1,20 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Card, Button } from 'react-bootstrap'
 import { BsHeart, BsHeartFill, BsChatDots } from 'react-icons/bs'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { saveListing, unsaveListing, getSavedListings } from '../services/api';
-import useAuth from '../hooks/useAuth';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { saveListing, unsaveListing } from '../services/api'
+import useAuth from '../hooks/useAuth'
 
-export default function ProductCard({ product }) {
+// savedItems is passed from the parent (fetched once) to avoid N duplicate queries.
+export default function ProductCard({ product, savedItems = [] }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const queryClient = useQueryClient()
-
-  const { data: savedItems = [] } = useQuery({
-    queryKey: ['saved-listings'],
-    queryFn: getSavedListings,
-    enabled: !!user
-  })
 
   const isSaved = savedItems.some(s => s.listingId === product.id)
   const isOwner = user?.id === product.userId
@@ -28,7 +23,9 @@ export default function ProductCard({ product }) {
 
   return (
     <Link to={`/listings/${product.id}`} className="text-decoration-none text-dark d-block h-100">
-      <Card className="h-100 border-0 shadow-sm" style={{ borderRadius: '6px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+      <Card
+        className="h-100 border-0 shadow-sm"
+        style={{ borderRadius: '6px', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
         onMouseEnter={e => {
           e.currentTarget.style.transform = 'translateY(-2px)'
           e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)'
@@ -60,7 +57,7 @@ export default function ProductCard({ product }) {
               }}
               disabled={saveMutation.isPending}
             >
-              {isSaved 
+              {isSaved
                 ? <BsHeartFill size={18} color="#ef4444" />
                 : <BsHeart size={18} />
               }

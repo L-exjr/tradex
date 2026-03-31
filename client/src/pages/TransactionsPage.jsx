@@ -62,7 +62,7 @@ export default function TransactionsPage() {
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Marketplace', to: '/marketplace' },
-                { label: 'Profile', to: '/profile' }
+                { label: 'Lost & Found',  to: '/lostfound' },
             ]} />
 
             <div className="transactions-page">

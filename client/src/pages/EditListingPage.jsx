@@ -50,10 +50,8 @@ export default function EditListingPage() {
         status: 'active'
     }, validate)
 
-    // Populate form with existing listing data once loaded
     useEffect(() => {
         if (listing) {
-            // Redirect if not owner
             if (listing.userId !== user?.id) {
                 navigate(`/listings/${id}`)
                 return
@@ -64,7 +62,8 @@ export default function EditListingPage() {
                 categoryId: listing.categoryId?.toString() || '',
                 description: listing.description || '',
                 pickupLocation: listing.pickupLocation || '',
-                status: listing.status || 'active'
+                // Clamp to safe values — never pre-select 'deleted' in the UI
+                status: listing.status === 'sold' ? 'sold' : 'active'
             })
         }
     }, [listing, user, id, navigate, setValues])
@@ -144,9 +143,7 @@ export default function EditListingPage() {
 
                 <div className="text-center mb-4">
                     <h1 className="list-item-title">Edit Listing</h1>
-                    <p className="list-item-subtitle">
-                        Update the details of your listing.
-                    </p>
+                    <p className="list-item-subtitle">Update the details of your listing.</p>
                 </div>
 
                 <div className="list-item-form-container">
@@ -160,11 +157,7 @@ export default function EditListingPage() {
                                     {listing.images.map((img, index) => (
                                         <Col key={index} xs={4} sm={3}>
                                             <div className="upload-preview-wrapper">
-                                                <img
-                                                    src={img.url}
-                                                    alt={`Image ${index + 1}`}
-                                                    className="upload-preview-img"
-                                                />
+                                                <img src={img.url} alt={`Image ${index + 1}`} className="upload-preview-img" />
                                             </div>
                                         </Col>
                                     ))}
@@ -183,16 +176,8 @@ export default function EditListingPage() {
                                     {newImages.map((img, index) => (
                                         <Col key={index} xs={4} sm={3}>
                                             <div className="upload-preview-wrapper">
-                                                <img
-                                                    src={img.preview}
-                                                    alt={`New ${index + 1}`}
-                                                    className="upload-preview-img"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    className="upload-remove-btn"
-                                                    onClick={() => removeNewImage(index)}
-                                                >
+                                                <img src={img.preview} alt={`New ${index + 1}`} className="upload-preview-img" />
+                                                <button type="button" className="upload-remove-btn" onClick={() => removeNewImage(index)}>
                                                     <BsXCircleFill size={18} />
                                                 </button>
                                             </div>
@@ -202,10 +187,7 @@ export default function EditListingPage() {
                             )}
 
                             {totalImages < 5 && (
-                                <div
-                                    className="photo-upload-area"
-                                    onClick={() => fileInputRef.current.click()}
-                                >
+                                <div className="photo-upload-area" onClick={() => fileInputRef.current.click()}>
                                     <div className="upload-icon-wrapper">
                                         <BsCameraFill size={24} color="#EAB308" />
                                     </div>
@@ -213,14 +195,7 @@ export default function EditListingPage() {
                                     <p className="text-muted" style={{ fontSize: '0.75rem' }}>
                                         {5 - totalImages} slot{5 - totalImages !== 1 ? 's' : ''} remaining
                                     </p>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="d-none"
-                                        onChange={handleFileChange}
-                                    />
+                                    <input ref={fileInputRef} type="file" accept="image/*" multiple className="d-none" onChange={handleFileChange} />
                                 </div>
                             )}
                         </Form.Group>
@@ -236,9 +211,7 @@ export default function EditListingPage() {
                                 isInvalid={!!errors.title}
                                 className="form-field-input"
                             />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.title}
-                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.title}</Form.Control.Feedback>
                         </Form.Group>
 
                         {/* Price and Category */}
@@ -259,9 +232,7 @@ export default function EditListingPage() {
                                         />
                                         <span className="currency-label">GH₵</span>
                                     </div>
-                                    {errors.price && (
-                                        <div className="text-danger small mt-1">{errors.price}</div>
-                                    )}
+                                    {errors.price && <div className="text-danger small mt-1">{errors.price}</div>}
                                 </Form.Group>
                             </Col>
                             <Col xs={12} sm={6}>
@@ -275,14 +246,10 @@ export default function EditListingPage() {
                                     >
                                         <option value="">Select Category</option>
                                         {listingCategories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>
-                                                {cat.name}
-                                            </option>
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
                                         ))}
                                     </Form.Select>
-                                    <Form.Control.Feedback type="invalid">
-                                        {errors.categoryId}
-                                    </Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">{errors.categoryId}</Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -300,9 +267,7 @@ export default function EditListingPage() {
                                 className="form-field-input"
                                 style={{ resize: 'vertical' }}
                             />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.description}
-                            </Form.Control.Feedback>
+                            <Form.Control.Feedback type="invalid">{errors.description}</Form.Control.Feedback>
                         </Form.Group>
 
                         {/* Pickup Location */}
@@ -317,7 +282,7 @@ export default function EditListingPage() {
                             />
                         </Form.Group>
 
-                        {/* Status */}
+                        {/* Status — 'deleted' intentionally excluded; use the Delete button below */}
                         <Form.Group className="mb-4">
                             <Form.Label className="form-field-label">STATUS</Form.Label>
                             <Form.Select
@@ -326,16 +291,12 @@ export default function EditListingPage() {
                                 className="form-field-input"
                             >
                                 <option value="active">Active</option>
-                                <option value="sold">Sold</option>
-                                <option value="deleted">Deleted</option>
+                                <option value="sold">Mark as Sold</option>
                             </Form.Select>
                         </Form.Group>
 
-                        {error && (
-                            <div className="text-danger small mb-3 text-center">{error}</div>
-                        )}
+                        {error && <div className="text-danger small mb-3 text-center">{error}</div>}
 
-                        {/* Submit Actions */}
                         <div className="d-flex flex-column gap-2">
                             <Button
                                 type="submit"
@@ -370,9 +331,7 @@ export default function EditListingPage() {
                             </Button>
                         ) : (
                             <div className="text-center">
-                                <p className="text-danger fw-semibold mb-3">
-                                    Are you sure? This cannot be undone.
-                                </p>
+                                <p className="text-danger fw-semibold mb-3">Are you sure? This cannot be undone.</p>
                                 <div className="d-flex gap-2 justify-content-center">
                                     <Button
                                         variant="outline-secondary"

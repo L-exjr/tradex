@@ -24,7 +24,7 @@ function SignupPage() {
         else if (!emailRegex.test(values.email)) newErrors.email = "Enter a valid email address";
         else if (!values.email.toLowerCase().endsWith("@st.knust.edu.gh")) newErrors.email = "Use your student email";
         if (!values.password) newErrors.password = "Password is required";
-        else if (values.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+        else if (values.password.length < 8) newErrors.password = "Password must be at least 8 characters";
         if (!values.confirmPassword) newErrors.confirmPassword = "Please confirm your password";
         else if (values.confirmPassword !== values.password) newErrors.confirmPassword = "Passwords do not match";
         if (!values.agreedToTerms) newErrors.agreedToTerms = "You must agree to continue";
@@ -106,7 +106,7 @@ function SignupPage() {
                                 <FormInput
                                     name="password"
                                     label="Password"
-                                    placeholder="Create a password"
+                                    placeholder="Create a password (min 8 characters)"
                                     type={showPassword ? "text" : "password"}
                                     value={values.password}
                                     onChange={handleChange("password")}
@@ -170,10 +170,7 @@ function SignupPage() {
                                     type="submit"
                                     size="lg"
                                     className="w-100 rounded-3 border-0"
-                                    style={{
-                                        color: "#0F172A",
-                                        backgroundColor: "#E0E000"
-                                    }}
+                                    style={{ color: "#0F172A", backgroundColor: "#E0E000" }}
                                     disabled={loading}
                                 >
                                     {loading ? "Creating account..." : "Create Account"}
@@ -186,7 +183,7 @@ function SignupPage() {
                                 <hr className="flex-grow-1" />
                             </div>
 
-                            <Button variant="light" className="w-100 border">
+                            <Button variant="light" className="w-100 border" disabled title="Not available yet">
                                 Google
                             </Button>
 

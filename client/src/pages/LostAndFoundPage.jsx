@@ -37,7 +37,6 @@ export default function LostAndFoundPage() {
                 }}
                 rightLinks={[
                     { label: 'Marketplace', to: '/marketplace' },
-                    { label: 'Profile', to: '/profile' }
                 ]}
             />
 

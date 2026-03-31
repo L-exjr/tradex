@@ -1,33 +1,17 @@
 const express      = require('express');
 const router       = express.Router();
 const multer       = require('multer');
-const supabase     = require('../supabase');
 const prisma       = require('../prisma');
 const auth         = require('../middleware/auth');
 const optionalAuth = require('../middleware/optionalAuth');
 const asyncHandler = require('../middleware/asyncHandler');
 const validate     = require('../middleware/validate');
 const log          = require('../lib/logger');
+const uploadImages = require('../lib/uploadImages');
 const { createListingSchema, updateListingSchema } = require('../lib/schemas');
 
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits:  { fileSize: 5 * 1024 * 1024 } // 5 MB per file
-});
-
-/** Upload files to Supabase and create Image DB records for a listing. */
-async function uploadImages(files, listingId) {
-    for (const file of files) {
-        const fileName = `listings/${Date.now()}-${file.originalname}`;
-        const { error } = await supabase
-            .storage
-            .from('item-images')
-            .upload(fileName, file.buffer, { contentType: file.mimetype, upsert: true });
-        if (error) throw error;
-        const { data } = supabase.storage.from('item-images').getPublicUrl(fileName);
-        await prisma.image.create({ data: { url: data.publicUrl, listingId } });
-    }
-}
+// 5 MB per-file enforced here; MIME type enforced inside uploadImages()
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // GET /api/listings  (paginated)
 router.get('/', asyncHandler(async (req, res) => {
@@ -96,6 +80,7 @@ router.get('/:id', optionalAuth, asyncHandler(async (req, res) => {
 }));
 
 // POST /api/listings
+// uploadImages() will throw 400 if any file is not a valid image MIME type
 router.post('/', auth, upload.array('images', 5), validate(createListingSchema), asyncHandler(async (req, res) => {
     const { title, description, price, categoryId, pickupLocation } = req.body;
     const userId = req.user.userId;
@@ -104,7 +89,9 @@ router.post('/', auth, upload.array('images', 5), validate(createListingSchema),
         data: { title, description, price, userId, categoryId, ...(pickupLocation && { pickupLocation }) }
     });
 
-    if (req.files?.length > 0) await uploadImages(req.files, listing.id);
+    if (req.files?.length > 0) {
+        await uploadImages(req.files, 'listings', { listingId: listing.id });
+    }
 
     const full = await prisma.listing.findUnique({
         where:   { id: listing.id },
@@ -122,8 +109,8 @@ router.put('/:id', auth, upload.array('images', 5), validate(updateListingSchema
     const listingId = parseInt(req.params.id);
 
     const existing = await prisma.listing.findUnique({ where: { id: listingId } });
-    if (!existing)                      return res.notFound('Listing not found');
-    if (existing.userId !== userId)     return res.forbidden();
+    if (!existing)                  return res.notFound('Listing not found');
+    if (existing.userId !== userId) return res.forbidden();
 
     await prisma.listing.update({
         where: { id: listingId },
@@ -137,7 +124,9 @@ router.put('/:id', auth, upload.array('images', 5), validate(updateListingSchema
         }
     });
 
-    if (req.files?.length > 0) await uploadImages(req.files, listingId);
+    if (req.files?.length > 0) {
+        await uploadImages(req.files, 'listings', { listingId });
+    }
 
     const full = await prisma.listing.findUnique({
         where:   { id: listingId },

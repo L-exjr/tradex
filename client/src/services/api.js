@@ -78,12 +78,30 @@ export const resetPassword = async (token, password) => {
     return data;
 };
 
+export const updateProfile = async (formData) => {
+    const res = await fetch(`${BASE_URL}/auth/me`, {
+        method: "PUT",
+        headers: getHeaders(true),
+        body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to update profile");
+    return data;
+};
+
+// Remove the current avatar (sets avatarUrl to null)
+export const removeAvatar = async () => {
+    const res = await fetch(`${BASE_URL}/auth/me/avatar`, {
+        method: "DELETE",
+        headers: getHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to remove photo");
+    return data;
+};
+
 // LISTINGS
 
-// Returns an array of listings. The backend now paginates (page + limit query params).
-// The response shape is { data: [...], pagination: { page, limit, total, pages } }.
-// Callers that only need the array can use getListings(); callers that need
-// pagination metadata can use getListingsPaginated().
 export const getListings = async (filters = {}) => {
     const params = new URLSearchParams(filters).toString();
     const res = await fetch(`${BASE_URL}/listings?${params}`, {
@@ -91,18 +109,7 @@ export const getListings = async (filters = {}) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to fetch listings");
-    // Support both legacy array shape and new paginated shape
     return Array.isArray(data) ? data : (data.data ?? []);
-};
-
-export const getListingsPaginated = async (filters = {}) => {
-    const params = new URLSearchParams(filters).toString();
-    const res = await fetch(`${BASE_URL}/listings?${params}`, {
-        headers: getHeaders()
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to fetch listings");
-    return data; // { data: [...], pagination: { page, limit, total, pages } }
 };
 
 export const getListing = async (id) => {
@@ -386,16 +393,5 @@ export const deleteReport = async (id) => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to delete report");
-    return data;
-};
-
-export const updateProfile = async (formData) => {
-    const res = await fetch(`${BASE_URL}/auth/me`, {
-        method: "PUT",
-        headers: getHeaders(true),
-        body: formData
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to update profile");
     return data;
 };

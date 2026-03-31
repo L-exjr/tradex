@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Container, Form, Button, Row, Col } from 'react-bootstrap'
-import { BsPersonCircle, BsGrid } from 'react-icons/bs'
+import { BsGrid } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
 import ProductCard from '../components/ProductCard'
 import useAuth from '../hooks/useAuth'
-import { getListings, getCategories } from '../services/api'
+import { getListings, getCategories, getSavedListings } from '../services/api'
 import LegalLinks from '../components/LegalLinks'
 import { useQuery } from '@tanstack/react-query'
 
@@ -35,6 +35,14 @@ function Marketplace() {
     enabled: selectedCategory === 'All' || categoriesData.length > 0
   })
 
+  // Fetched once here — passed to every ProductCard as a prop.
+  // TanStack Query deduplicates this with ProfilePage's identical query key.
+  const { data: savedItems = [] } = useQuery({
+    queryKey: ['saved-listings'],
+    queryFn: getSavedListings,
+    enabled: !!user
+  })
+
   const sorted = [...listings].sort((a, b) => {
     if (sortOrder === 'newest') return new Date(b.createdAt) - new Date(a.createdAt)
     if (sortOrder === 'price_asc') return a.price - b.price
@@ -51,59 +59,21 @@ function Marketplace() {
       <AppNavbar
         bg="#FFFFFF"
         border={true}
+        showSearch={true}
+        searchPlaceholder="Search textbooks, tech..."
+        onSearch={(q) => { setSearchQuery(q); setVisibleCount(8); }}
         rightLinks={[
-          { label: 'Lost & Found', to: '/lostfound' },
+          { label: 'Lost & Found',  to: '/lostfound' },
+          {
+            label: 'Sell Item',
+            to: '/listings/create',
+            className: 'fw-bold rounded-1 px-3 py-2',
+            style: { backgroundColor: '#E0E000', color: '#0F172A' }
+          },
         ]}
       />
 
       <Container fluid className="px-4 px-md-5" style={{ minHeight: '100vh', background: '#F8FAFC' }}>
-
-        {/* Top Bar */}
-        <Row className="align-items-center py-3 border-bottom gap-2">
-          <Col>
-            <Form.Control
-              type="text"
-              placeholder="Search textbooks, tech..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setVisibleCount(8)
-              }}
-              style={{ borderRadius: '6px', borderColor: '#e0e0e0' }}
-            />
-          </Col>
-          <Col xs="auto" className="d-flex align-items-center gap-2 flex-wrap">
-            <Button
-              variant="link"
-              className="text-dark text-decoration-none fw-500 p-0"
-              onClick={() => navigate('/messages')}
-            >
-              Messages
-            </Button>
-            <Button
-              variant="link"
-              className="text-dark text-decoration-none fw-500 p-0"
-              onClick={() => navigate('/transactions')}
-            >
-              My Transactions
-            </Button>
-            <Button
-              onClick={() => navigate('/listings/create')}
-              style={{ backgroundColor: '#E0E000', border: 'none', color: '#0F172A', fontWeight: 600, borderRadius: '4px' }}
-            >
-              Sell Item
-            </Button>
-            <div
-              role="button"
-              onClick={() => navigate('/profile')}
-              title={user?.name}
-              className="d-flex align-items-center justify-content-center rounded-circle border"
-              style={{ width: 40, height: 40, cursor: 'pointer', backgroundColor: 'white' }}
-            >
-              <BsPersonCircle size={22} />
-            </div>
-          </Col>
-        </Row>
 
         {/* Quick Categories */}
         <Row className="py-4">
@@ -116,17 +86,14 @@ function Marketplace() {
                 <Button
                   key={category}
                   size="sm"
-                  onClick={() => {
-                    setSelectedCategory(category)
-                    setVisibleCount(8)
-                  }}
+                  onClick={() => { setSelectedCategory(category); setVisibleCount(8); }}
                   style={{
                     backgroundColor: selectedCategory === category ? '#E0E000' : 'white',
-                    borderColor: selectedCategory === category ? '#E0E000' : '#e0e0e0',
-                    color: '#0F172A',
-                    fontWeight: selectedCategory === category ? 600 : 500,
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease'
+                    borderColor:     selectedCategory === category ? '#E0E000' : '#e0e0e0',
+                    color:           '#0F172A',
+                    fontWeight:      selectedCategory === category ? 600 : 500,
+                    borderRadius:    '4px',
+                    transition:      'all 0.2s ease'
                   }}
                 >
                   {category === 'All' && <BsGrid className="me-1" />}
@@ -171,7 +138,7 @@ function Marketplace() {
               <Row xs={1} sm={2} lg={3} xl={4} className="g-3">
                 {visible.map((listing) => (
                   <Col key={listing.id}>
-                    <ProductCard product={listing} />
+                    <ProductCard product={listing} savedItems={savedItems} />
                   </Col>
                 ))}
               </Row>
@@ -205,4 +172,4 @@ function Marketplace() {
   )
 }
 
-export default Marketplace;
+export default Marketplace

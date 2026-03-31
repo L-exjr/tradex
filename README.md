@@ -1,154 +1,155 @@
-# TradeX
+# TradeX — Deployment & Submission Checklist
 
-Campus marketplace for students (**KNUST** `@st.knust.edu.gh` accounts): listings, lost & found, messaging, transactions, saved items, and reports.
+A campus marketplace for KNUST students. Built with React (Vite) + Express + Prisma + Supabase.
+
+---
 
 ## Stack
 
-| Part | Tech |
-|------|------|
-| **Client** | React 19, Vite 8, React Router 7, React Bootstrap, TanStack Query |
-| **Server** | Express 5, Prisma 7 (PostgreSQL), JWT auth, Supabase Storage (images) |
-| **Database** | PostgreSQL (e.g. Supabase) |
+| Layer     | Technology                        |
+|-----------|-----------------------------------|
+| Frontend  | React 19, Vite, React Bootstrap   |
+| Backend   | Node.js, Express 5, Prisma 7      |
+| Database  | PostgreSQL via Supabase            |
+| Storage   | Supabase Storage (item-images)    |
+| Auth      | JWT (7-day expiry, localStorage)  |
+| Hosting   | Vercel (frontend) · Railway (backend) |
 
-## Repo layout
+---
 
-```
-tradex/
-├── client/          # Vite SPA
-├── server/          # Express API + Prisma
-└── README.md
-```
-
-## Prerequisites
-
-- Node.js 20+ (recommended)
-- PostgreSQL (local or hosted, e.g. Supabase)
-- A Supabase project if you use Supabase Storage for uploads
-
-## Quick start (local)
-
-### 1. Server
+## Local Development
 
 ```bash
+# 1. Backend
 cd server
-cp .env.example .env
-# Edit .env: DATABASE_URL, JWT_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, etc.
-
+cp .env.example .env        # fill in all values
 npm install
-npx prisma generate
-npm run dev
-```
+npm run dev                 # http://localhost:8000
 
-API defaults to **http://localhost:5000** (or `PORT` in `.env`).
-
-Health check: `GET http://localhost:5000/api`
-
-### 2. Client
-
-```bash
+# 2. Frontend (separate terminal)
 cd client
-cp .env.example .env
-# Optional: VITE_API_URL=http://localhost:5000
-
+cp .env.example .env        # set VITE_API_URL=http://localhost:8000
 npm install
-npm run dev
-```
+npm run dev                 # http://localhost:5173
 
-App: **http://localhost:5173**
-
-### 3. Seed categories (optional)
-
-```bash
+# 3. Seed the database (optional)
 cd server
 npm run seed
 ```
 
-## Environment variables
+---
 
-### Server (`server/.env`)
+## Environment Variables
 
-See **`server/.env.example`**. Important keys:
+### Backend (`server/.env`)
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Secret for signing JWTs |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only; storage uploads |
-| `ALLOWED_ORIGINS` | Comma-separated browser origins (CORS) |
-| `CLIENT_ORIGIN` | Public web app URL (password-reset links in email) |
-| `EMAIL_USER` / `EMAIL_PASS` | Optional; Gmail or other SMTP for password reset |
-| `ADMIN_EMAILS` | Comma-separated emails allowed to **create/update/delete categories** and see **all** reports |
+| Variable                | Required | Description                                          |
+|-------------------------|----------|------------------------------------------------------|
+| `PORT`                  | No       | Server port (default 8000)                           |
+| `DATABASE_URL`          | Yes      | Supabase pooler connection string (pgBouncer)        |
+| `DIRECT_URL`            | Yes      | Supabase direct connection string (for migrations)   |
+| `JWT_SECRET`            | Yes      | Long random string for signing JWTs                  |
+| `SUPABASE_URL`          | Yes      | Supabase project URL                                 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes  | Supabase service-role key (not anon key)             |
+| `EMAIL_USER`            | No       | Gmail address for password-reset emails              |
+| `EMAIL_PASS`            | No       | Gmail app password (not your account password)       |
+| `NODE_ENV`              | Yes      | `production` on Railway, `development` locally       |
+| `ALLOWED_ORIGINS`       | Yes      | Comma-separated frontend URLs, e.g. `https://tradex.vercel.app` |
+| `CLIENT_ORIGIN`         | Yes      | Frontend URL used in password-reset email links      |
+| `ADMIN_EMAILS`          | No       | Comma-separated emails with admin privileges         |
 
-### Client (`client/.env`)
+### Frontend (`client/.env`)
 
-| Variable | Purpose |
-|----------|---------|
-| `VITE_API_URL` | API origin **without** `/api` (e.g. `http://localhost:5000`). Required in production builds. |
+| Variable       | Required | Description                              |
+|----------------|----------|------------------------------------------|
+| `VITE_API_URL` | Yes      | Backend URL, e.g. `https://tradex.up.railway.app` |
 
-## Database & Prisma
+---
 
-- Prisma **7** uses **`server/prisma.config.ts`** for the datasource URL (not `url` in `schema.prisma`).
-- Migrations live under **`server/prisma/migrations/`**.
+## Deploying to Railway (Backend)
 
-### Apply migrations
+1. Push the repo to GitHub.
+2. Create a new Railway project → **Deploy from GitHub repo**.
+3. Set the root directory to `server/`.
+4. Add all environment variables from the table above.
+5. Railway reads `railway.json` automatically:
+   - Start command: `node src/index.js`
+   - Healthcheck: `GET /api` → `{ ok: true }`
+   - Restart policy: on failure, up to 3 retries
+6. After deploy, copy the Railway public URL into `ALLOWED_ORIGINS` and redeploy.
 
-Use a **direct** Postgres URL (**port 5432**) when running CLI commands. Supabase’s **transaction pooler** (`:6543`) is often unsuitable for `migrate deploy` (advisory locks).
+---
+
+## Deploying to Vercel (Frontend)
+
+1. Create a new Vercel project → import the same GitHub repo.
+2. Set the root directory to `client/`.
+3. Add `VITE_API_URL` pointing to your Railway backend URL.
+4. Vercel reads `vercel.json` automatically:
+   - All routes rewrite to `/index.html` for SPA routing.
+5. Copy the Vercel deployment URL back into the backend's `ALLOWED_ORIGINS`.
+
+---
+
+## Database Migrations
 
 ```bash
+# Apply pending migrations to production DB
 cd server
 npx prisma migrate deploy
 ```
 
-### Existing database already matches the schema
+Run this after any schema changes before deploying the new backend.
 
-If tables exist but Prisma has no migration history, baseline after verifying the DB matches **`schema.prisma`**:
+---
 
-```bash
-npx prisma migrate resolve --applied 20260330120000_init
-```
+## Pre-Submission Checklist
 
-### Introspect / drift
+- [ ] `NODE_ENV=production` set on Railway
+- [ ] `ALLOWED_ORIGINS` contains the exact Vercel URL (no trailing slash)
+- [ ] `CLIENT_ORIGIN` contains the exact Vercel URL (used in reset-password emails)
+- [ ] `JWT_SECRET` is a long (32+ char) random string — not a placeholder
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` is the **service role** key, not the anon key
+- [ ] `EMAIL_USER` and `EMAIL_PASS` set if password-reset emails are required
+- [ ] `ADMIN_EMAILS` contains at least one admin email for category management
+- [ ] `npx prisma migrate deploy` run against production DB
+- [ ] Supabase Storage bucket `item-images` exists and is set to **public**
+- [ ] Health check passes: `GET https://<railway-url>/api` returns `{ ok: true }`
+- [ ] Frontend loads and can log in with a `@st.knust.edu.gh` email
 
-```bash
-npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema prisma/schema.prisma --script
-```
+---
 
-If `db pull` or `migrate deploy` returns **P1001**, fix **network/DNS** and reachability to the database host first.
+## File Upload Limits
 
-## Scripts
+| Upload type | Max size | Max count | Accepted formats         |
+|-------------|----------|-----------|--------------------------|
+| Listing images | 5 MB  | 5         | JPEG, PNG, WebP, GIF     |
+| Lost & Found images | 5 MB | 5    | JPEG, PNG, WebP, GIF     |
+| Avatar      | 2 MB     | 1         | JPEG, PNG, WebP, GIF     |
 
-### Server (`server/package.json`)
+---
 
-| Script | Command |
-|--------|---------|
-| `npm run dev` | `nodemon src/index.js` |
-| `npm start` | `node src/index.js` |
-| `npm run seed` | Seed categories |
-| `npm run migrate:deploy` | `prisma migrate deploy` |
-| `npm run migrate:diff` | Print SQL from empty DB → current schema |
+## API Overview
 
-### Client (`client/package.json`)
-
-| Script | Command |
-|--------|---------|
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build → `dist/` |
-| `npm run preview` | Preview production build |
-| `npm run lint` | ESLint |
-
-## Deployment (typical)
-
-- **Frontend:** Vite static build on Vercel (or similar). Set **`VITE_API_URL`** to your API base URL, then rebuild.
-- **Backend:** Node host (e.g. Railway, Render). Set **`PORT`** from the platform; do **not** override it unless you know the platform’s requirements. Set **`ALLOWED_ORIGINS`** and **`CLIENT_ORIGIN`** to your real web origin(s).
-- **`client/vercel.json`** includes SPA rewrites so client-side routes work on refresh.
-
-## Security notes
-
-- Never commit **`.env`** or real secrets.
-- **JWT** tokens are stored in **`localStorage`** on the client.
-- Category mutations and full report listing are restricted by **`ADMIN_EMAILS`** (see server routes).
-
-## License
-
-ISC (see `server/package.json`). Update as needed for your team.
+| Method | Path                          | Auth     | Description                        |
+|--------|-------------------------------|----------|------------------------------------|
+| POST   | `/api/auth/register`          | Public   | Register with KNUST email          |
+| POST   | `/api/auth/login`             | Public   | Login, returns JWT                 |
+| GET    | `/api/auth/me`                | Required | Get current user profile           |
+| PUT    | `/api/auth/me`                | Required | Update profile / avatar            |
+| GET    | `/api/listings`               | Public   | Paginated listings (`?page=&limit=`) |
+| POST   | `/api/listings`               | Required | Create a listing                   |
+| PUT    | `/api/listings/:id`           | Owner    | Edit a listing                     |
+| DELETE | `/api/listings/:id`           | Owner    | Soft-delete a listing              |
+| GET    | `/api/messages/conversations` | Required | All conversations (DB-level aggregation) |
+| GET    | `/api/messages/:partnerId`    | Required | Message thread + mark-read         |
+| POST   | `/api/messages`               | Required | Send a message                     |
+| POST   | `/api/transactions`           | Required | Initiate a purchase                |
+| PUT    | `/api/transactions/:id`       | Party    | Complete or cancel                 |
+| GET    | `/api/lostfound`              | Public   | Lost & Found posts                 |
+| POST   | `/api/lostfound`              | Required | Report lost/found item             |
+| GET    | `/api/saved`                  | Required | Saved listings                     |
+| POST   | `/api/saved/:listingId`       | Required | Save a listing                     |
+| DELETE | `/api/saved/:listingId`       | Required | Unsave a listing                   |
+| POST   | `/api/reports`                | Required | Report a listing or post           |
+| GET    | `/api/categories`             | Public   | All categories                     |
