@@ -5,7 +5,7 @@ import { BsCameraFill, BsXCircleFill, BsTrash } from 'react-icons/bs'
 import AppNavbar from '../components/AppNavbar'
 import LegalLinks from '../components/LegalLinks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getListing, updateListing, deleteListing, getCategories } from '../services/api'
+import { getListing, updateListing, getCategories } from '../services/api'
 import useForm from '../hooks/useForm'
 import useAuth from '../hooks/useAuth'
 
@@ -29,7 +29,7 @@ export default function EditListingPage() {
         queryFn: getCategories
     })
 
-    const listingCategories = categories.filter(c => c.type === 'listing')
+    const listingCategories = categories.filter(c => c.type === 'listing' || c.type === 'both')
 
     const validate = (values) => {
         const errors = {}
@@ -79,16 +79,6 @@ export default function EditListingPage() {
         onError: (err) => setError(err.message)
     })
 
-    const deleteMutation = useMutation({
-        mutationFn: () => deleteListing(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['listings'] })
-            queryClient.invalidateQueries({ queryKey: ['my-listings'] })
-            navigate('/profile')
-        },
-        onError: (err) => setError(err.message)
-    })
-
     const onSubmit = (values) => {
         const formData = new FormData()
         formData.append('title', values.title)
@@ -98,6 +88,12 @@ export default function EditListingPage() {
         formData.append('pickupLocation', values.pickupLocation)
         formData.append('status', values.status)
         newImages.forEach(img => formData.append('images', img.file))
+        updateMutation.mutate(formData)
+    }
+
+    const handleDelete = () => {
+        const formData = new FormData()
+        formData.append('status', 'deleted')
         updateMutation.mutate(formData)
     }
 
@@ -136,7 +132,7 @@ export default function EditListingPage() {
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Marketplace', to: '/marketplace' },
-                { label: 'Profile', to: '/profile' }
+                { label: 'Lost & Found', to: '/lost-found' },
             ]} />
 
             <div className="list-item-page">
@@ -282,7 +278,7 @@ export default function EditListingPage() {
                             />
                         </Form.Group>
 
-                        {/* Status — 'deleted' intentionally excluded; use the Delete button below */}
+                        {/* Status */}
                         <Form.Group className="mb-4">
                             <Form.Label className="form-field-label">STATUS</Form.Label>
                             <Form.Select
@@ -343,10 +339,10 @@ export default function EditListingPage() {
                                     <Button
                                         variant="danger"
                                         style={{ borderRadius: '8px' }}
-                                        onClick={() => deleteMutation.mutate()}
-                                        disabled={deleteMutation.isPending}
+                                        onClick={handleDelete}
+                                        disabled={updateMutation.isPending}
                                     >
-                                        {deleteMutation.isPending ? 'Deleting...' : 'Yes, Delete'}
+                                        {updateMutation.isPending ? 'Deleting...' : 'Yes, Delete'}
                                     </Button>
                                 </div>
                             </div>
