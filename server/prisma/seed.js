@@ -2,22 +2,21 @@
  * Seed script — populates categories for TradeX.
  * Safe to run multiple times: existing rows are detected and skipped.
  *
+ * Category types:
+ *   'listing'   → Marketplace + List New Item only
+ *   'lostfound' → Lost & Found only
+ *   'both'      → appears in BOTH contexts
+ *
  * Usage:
  *   cd server && npm run seed
- *
- * For production DB, use the direct connection string (not pgBouncer):
- *   DATABASE_URL="<DIRECT_URL value>" npm run seed
- *   — or —
+ *   DATABASE_URL="<DIRECT_URL>" npm run seed   ← for production DB
  *   railway run npm run seed
  */
 
 'use strict';
 
-// Load .env when running locally. Silently ignored if the file doesn't exist.
 try { require('dotenv').config(); } catch (_) {}
 
-// The generated client lives at src/generated/prisma relative to the server root.
-// This script lives at prisma/seed.js — one level deeper — so the path is ../src/...
 const { PrismaClient } = require('../src/generated/prisma');
 const { PrismaPg }     = require('@prisma/adapter-pg');
 
@@ -31,61 +30,62 @@ const adapter = new PrismaPg({ connectionString });
 const prisma  = new PrismaClient({ adapter });
 
 // ── Category definitions ──────────────────────────────────────────────────────
-// type: 'listing'   → Marketplace filter bar + List New Item dropdown
-// type: 'lostfound' → Report Lost/Found Item dropdown
+// Use type:'both' for any category that should appear in BOTH the Marketplace
+// and Lost & Found dropdowns. The frontend filters on  type === 'listing' || 'both'
+// and type === 'lostfound' || 'both'  respectively.
 
-const LISTING_CATEGORIES = [
-    'Textbooks & Notes',
-    'Electronics',
-    'Clothing & Accessories',
-    'Furniture & Appliances',
-    'Sports & Fitness',
-    'Musical Instruments',
-    'Art & Crafts',
-    'Food & Groceries',
-    'Services',
-    'Staionery',
-    'Other',
-];
+const CATEGORIES = [
+    // Listing-only
+    { name: 'Textbooks & Notes',    type: 'listing' },
+    { name: 'Furniture & Appliances', type: 'listing' },
+    { name: 'Musical Instruments',  type: 'listing' },
+    { name: 'Art & Crafts',         type: 'listing' },
+    { name: 'Food & Groceries',     type: 'listing' },
+    { name: 'Services',             type: 'listing' },
+    { name: 'Stationery',           type: 'listing' },
 
-const LOSTFOUND_CATEGORIES = [
-    'Electronics',
-    'ID & Documents',
-    'Clothing & Accessories',
-    'Bags & Luggage',
-    'Keys',
-    'Books & Stationery',
-    'Glasses & Eyewear',
-    'Jewellery & Watches',
-    'Sports Equipment',
-    'Other',
+    // Lost & Found-only
+    { name: 'ID & Documents',       type: 'lostfound' },
+    { name: 'Bags & Luggage',       type: 'lostfound' },
+    { name: 'Keys',                 type: 'lostfound' },
+    { name: 'Books & Stationery',   type: 'lostfound' },
+    { name: 'Glasses & Eyewear',    type: 'lostfound' },
+    { name: 'Jewellery & Watches',  type: 'lostfound' },
+
+    // Both — appear in Marketplace AND Lost & Found
+    { name: 'Electronics',          type: 'both' },
+    { name: 'Clothing & Accessories', type: 'both' },
+    { name: 'Sports & Fitness',     type: 'both' },
+    { name: 'Sports Equipment',     type: 'both' },
+    { name: 'Other',                type: 'both' },
 ];
 
 async function main() {
     console.log('🌱 Seeding categories...\n');
 
-    const all = [
-        ...LISTING_CATEGORIES.map(name  => ({ name, type: 'listing' })),
-        ...LOSTFOUND_CATEGORIES.map(name => ({ name, type: 'lostfound' })),
-    ];
-
     let created = 0;
+    let updated = 0;
     let skipped = 0;
 
-    for (const cat of all) {
+    for (const cat of CATEGORIES) {
         const existing = await prisma.category.findUnique({ where: { name: cat.name } });
 
-        if (existing) {
-            console.log(`  –  exists   [${cat.type.padEnd(9)}]  ${cat.name}`);
-            skipped++;
-        } else {
+        if (!existing) {
             await prisma.category.create({ data: cat });
             console.log(`  ✓  created  [${cat.type.padEnd(9)}]  ${cat.name}`);
             created++;
+        } else if (existing.type !== cat.type) {
+            // Fix any rows that have the wrong type (e.g. 'listing' that should be 'both')
+            await prisma.category.update({ where: { name: cat.name }, data: { type: cat.type } });
+            console.log(`  ↑  updated  [${existing.type} → ${cat.type}]  ${cat.name}`);
+            updated++;
+        } else {
+            console.log(`  –  exists   [${cat.type.padEnd(9)}]  ${cat.name}`);
+            skipped++;
         }
     }
 
-    console.log(`\n✅ Done — ${created} created, ${skipped} already existed.`);
+    console.log(`\n✅ Done — ${created} created, ${updated} updated, ${skipped} already correct.`);
 }
 
 main()

@@ -19,7 +19,8 @@ export default function ListNewItemPage() {
         queryFn: getCategories
     })
 
-    const listingCategories = categories.filter(c => c.type === 'listing')
+    // Show categories typed 'listing' OR 'both'
+    const listingCategories = categories.filter(c => c.type === 'listing' || c.type === 'both')
 
     const validate = (values) => {
         const errors = {}
@@ -246,7 +247,6 @@ export default function ListNewItemPage() {
                             <div className="text-danger small mb-3 text-center">{error}</div>
                         )}
 
-                        {/* Actions */}
                         <div className="d-flex flex-column gap-2">
                             <Button
                                 type="submit"

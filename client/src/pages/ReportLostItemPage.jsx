@@ -20,7 +20,8 @@ export default function ReportLostItemPage() {
         queryFn: getCategories
     })
 
-    const lfCategories = categories.filter(c => c.type === 'lostfound')
+    // Show categories typed 'lostfound' OR 'both'
+    const lfCategories = categories.filter(c => c.type === 'lostfound' || c.type === 'both')
 
     const validate = (values) => {
         const errors = {}
@@ -151,7 +152,7 @@ export default function ReportLostItemPage() {
                                             <BsCameraFill size={22} color="#EAB308" />
                                         </div>
                                         <p className="fw-semibold small mb-1">Click to upload or drag and drop</p>
-                                        <p className="text-muted" style={{ fontSize: '0.75rem' }}>PNG, JPG up to 10MB</p>
+                                        <p className="text-muted" style={{ fontSize: '0.75rem' }}>PNG, JPG up to 5MB</p>
                                         <input
                                             ref={fileInputRef}
                                             type="file"
@@ -280,7 +281,7 @@ export default function ReportLostItemPage() {
                                         style={{ borderColor: '#e5e7eb', borderRadius: '8px' }}
                                         onClick={() => navigate('/lostfound')}
                                     >
-                                        Save as Draft
+                                        Cancel
                                     </Button>
                                 </Col>
                                 <Col xs={12} sm={8}>

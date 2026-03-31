@@ -35,8 +35,6 @@ function Marketplace() {
     enabled: selectedCategory === 'All' || categoriesData.length > 0
   })
 
-  // Fetched once here — passed to every ProductCard as a prop.
-  // TanStack Query deduplicates this with ProfilePage's identical query key.
   const { data: savedItems = [] } = useQuery({
     queryKey: ['saved-listings'],
     queryFn: getSavedListings,
@@ -52,7 +50,12 @@ function Marketplace() {
 
   const visible = sorted.slice(0, visibleCount)
   const hasMore = visibleCount < sorted.length
-  const categories = ['All', ...categoriesData.filter(c => c.type === 'listing').map(c => c.name)]
+
+  // Show categories typed 'listing' OR 'both'
+  const categories = ['All', ...categoriesData
+    .filter(c => c.type === 'listing' || c.type === 'both')
+    .map(c => c.name)
+  ]
 
   return (
     <>
@@ -63,7 +66,7 @@ function Marketplace() {
         searchPlaceholder="Search textbooks, tech..."
         onSearch={(q) => { setSearchQuery(q); setVisibleCount(8); }}
         rightLinks={[
-          { label: 'Lost & Found',  to: '/lostfound' },
+          { label: 'Lost & Found', to: '/lostfound' },
           {
             label: 'Sell Item',
             to: '/listings/create',
