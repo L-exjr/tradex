@@ -18,22 +18,32 @@ app.use(helmet());
 app.use(compression());
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-const parseAllowedOrigins = () =>
-    (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
-        .split(',')
-        .map((o) => o.trim())
-        .filter(Boolean);
+// Allowed origins come entirely from the ALLOWED_ORIGINS env var.
+// Parsed once at startup so the list is logged clearly on boot.
+// On Railway: set ALLOWED_ORIGINS to your Vercel production URL.
+//   e.g.  ALLOWED_ORIGINS=https://tradex-smoky.vercel.app
+// Multiple origins (comma-separated):
+//   e.g.  ALLOWED_ORIGINS=https://tradex-smoky.vercel.app,http://localhost:5173
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
 
 app.use(
     cors({
         origin(origin, callback) {
-            // No Origin header = server-to-server request (Railway healthcheck,
-            // curl, Prisma probes, etc.) — always allow.
+            // No Origin header = server-to-server / Railway healthcheck / curl — allow
             if (!origin) return callback(null, true);
 
-            const allowed = parseAllowedOrigins();
-            if (allowed.includes(origin)) return callback(null, true);
-            return callback(new Error(`Origin ${origin} not allowed by CORS`));
+            if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+
+            // Log the rejected origin so it shows up clearly in Railway logs
+            log.warn('CORS: rejected origin', { origin, allowed: ALLOWED_ORIGINS });
+
+            // Return null (block the request) rather than throwing —
+            // throwing causes an unhandled-error response without CORS headers,
+            // which the browser reports as a network error instead of a CORS error.
+            return callback(null, false);
         },
         credentials: true
     })
@@ -42,7 +52,7 @@ app.use(
 app.use(express.json());
 app.set('trust proxy', 1);
 
-// ── Consistent response helpers on every res object ───────────────────────────
+// ── Consistent response shape on every res object ────────────────────────────
 app.use(responseHelpers);
 
 // ── HTTP request logger ───────────────────────────────────────────────────────
@@ -99,23 +109,26 @@ app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/reports',      require('./routes/reports'));
 app.use('/api/saved',        require('./routes/saved'));
 
-// Health check
+// Health check — used by railway.json healthcheckPath
 app.get('/api', (_req, res) => {
     res.json({ ok: true, env: process.env.NODE_ENV || 'development' });
 });
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
+    // Multer file errors — return clean JSON instead of HTML
     if (err instanceof multer.MulterError) {
-        if (err.code === 'LIMIT_FILE_SIZE')      return res.status(400).json({ error: 'File too large. Maximum size is 5 MB per image.' });
+        if (err.code === 'LIMIT_FILE_SIZE')       return res.status(400).json({ error: 'File too large. Maximum size is 5 MB per image.' });
         if (err.code === 'LIMIT_UNEXPECTED_FILE') return res.status(400).json({ error: 'Unexpected file field in upload.' });
         return res.status(400).json({ error: err.message });
     }
 
+    // Typed errors from services / uploadImages (err.status set explicitly)
     if (err.status && err.status < 500) {
         return res.status(err.status).json({ error: err.message });
     }
 
+    // Unexpected server errors — never leak stack traces in production
     log.error('Unhandled error', {
         method:  req.method,
         path:    req.path,
@@ -136,6 +149,6 @@ app.listen(PORT, HOST, () => {
         host:    HOST,
         port:    PORT,
         env:     process.env.NODE_ENV || 'development',
-        origins: parseAllowedOrigins(),
+        origins: ALLOWED_ORIGINS,  // logged at startup so you can verify the list
     });
 });
