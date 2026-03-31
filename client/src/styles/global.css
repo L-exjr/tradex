@@ -8,6 +8,11 @@ body {
   color: #0F172A;
 }
 
+.hero-logo {
+  width: 100%;
+  max-width: 630px;
+}
+
 /* Glass Card */
 
 .glass-card {
@@ -949,7 +954,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  max-width: 180px;
+  max-width: 60%;
 }
 
 .unread-badge {
@@ -1549,6 +1554,22 @@ body {
 @media (max-width: 1200px) {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .seller-info-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
   }
 }
 

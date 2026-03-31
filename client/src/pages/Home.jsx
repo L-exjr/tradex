@@ -21,7 +21,7 @@ function Home() {
 
                 <Row className="justify-content-center text-center mb-4">
                     <Col md="auto">
-                        <img src={logo} alt="Logo" className="img-fluid" style={{ maxWidth: "630px" }} />
+                        <img src={logo} alt="Logo" className="img-fluid hero-logo" />
 
                         <p className="text-muted mt-3 fs-3">
                             The next-gen marketplace built exclusively
