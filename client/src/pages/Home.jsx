@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Container, Row, Col, Button, Card, Navbar, Nav } from "react-bootstrap";
-import { BsArrowRight, BsLightningCharge, BsShieldCheck, BsWallet, BsGlobeAmericas, BsSun } from "react-icons/bs";
+import { Container, Row, Col, Button, Card, Nav } from "react-bootstrap";
+import { BsArrowRight, BsLightningCharge, BsShieldCheck, BsWallet, } from "react-icons/bs";
 import logo from "../assets/logo.png";
 import AppNavbar from "../components/AppNavbar";
 
@@ -17,7 +17,7 @@ function Home() {
                     label: "Join Community", to: "/signup", className: "text-white rounded-pill px-3 fw-bold", style: { backgroundColor: "#111111" }
                 }
             ]} bg="transparent" />
-            <Container fluid className="py-4" style={{ background: "#F4F7E8", minHeight: "100vh" }}>
+            <Container fluid className="py-4 mx-2" style={{ background: "#F4F7E8", minHeight: "100vh" }}>
 
                 <Row className="justify-content-center text-center mb-4">
                     <Col md="auto">
@@ -93,11 +93,6 @@ function Home() {
 
                     <div className="text-center text-dark flex-lg-grow-1 d-flex justify-content-center">
                         &copy; {new Date().getFullYear()} TradeX. DESIGNED FOR THE FUTURE.
-                    </div>
-
-                    <div className="d-flex align-items-center gap-2">
-                        <BsGlobeAmericas size={20} className="text-dark" />
-                        <BsSun size={20} className="text-dark" />
                     </div>
 
                 </Container>
