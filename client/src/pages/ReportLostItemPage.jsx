@@ -79,6 +79,7 @@ export default function ReportLostItemPage() {
     return (
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
+                { label: 'Marketplace', to: '/marketplace' },
                 { label: 'Lost & Found', to: '/lostfound' },
             ]} />
 

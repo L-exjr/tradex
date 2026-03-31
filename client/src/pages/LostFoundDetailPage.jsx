@@ -68,8 +68,8 @@ export default function LostFoundDetailPage() {
     return (
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
+                { label: 'Marketplace', to: '/marketplace' },
                 { label: 'Lost & Found', to: '/lostfound' },
-                { label: 'Profile', to: '/profile' }
             ]} />
 
             <div className="product-detail-page">

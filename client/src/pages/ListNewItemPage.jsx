@@ -78,6 +78,7 @@ export default function ListNewItemPage() {
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Marketplace', to: '/marketplace' },
+                { label: 'Lost & Found', to: '/lost-found' },
             ]} />
 
             <div className="list-item-page">
