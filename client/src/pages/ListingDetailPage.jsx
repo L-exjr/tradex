@@ -153,16 +153,16 @@ export default function ListingDetailPage() {
                                 {/* Tags and Price */}
                                 <div className="d-flex justify-content-between align-items-start mb-3">
                                     <div className="d-flex gap-2 flex-wrap">
-                                        <Badge
-                                            style={{ backgroundColor: '#f0f0f0', color: '#64748B', fontWeight: 600, fontSize: '0.7rem' }}
+                                        <span
+                                            style={{ backgroundColor: '#f0f0f0', color: '#64748B', fontWeight: 600, fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}
                                         >
                                             {listing.category?.name || 'Uncategorized'}
-                                        </Badge>
-                                        <Badge
-                                            style={{ backgroundColor: '#e0ffe0', color: '#008000', fontWeight: 600, fontSize: '0.7rem' }}
+                                        </span>
+                                        <span
+                                            style={{ backgroundColor: '#e0ffe0', color: '#008000', fontWeight: 600, fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}
                                         >
                                             {listing.status === 'active' ? 'Available' : listing.status}
-                                        </Badge>
+                                        </span>
                                     </div>
                                     <div className="text-end">
                                         <span className="product-detail-price">
