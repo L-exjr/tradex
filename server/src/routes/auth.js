@@ -52,7 +52,8 @@ router.get('/public-config', (_req, res) => {
 
 // POST /api/auth/register
 router.post('/register', validate(registerSchema), asyncHandler(async (req, res) => {
-    const { name, email, password, studentId } = req.body;
+    const { name, password, studentId } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.conflict('Email already in use');
@@ -68,7 +69,8 @@ router.post('/register', validate(registerSchema), asyncHandler(async (req, res)
 
 // POST /api/auth/login
 router.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const user  = await prisma.user.findUnique({ where: { email } });
     const valid = user && await bcrypt.compare(password, user.passwordHash);
@@ -94,7 +96,7 @@ router.get('/me', auth, asyncHandler(async (req, res) => {
 
 // POST /api/auth/forgot-password
 router.post('/forgot-password', validate(forgotPasswordSchema), asyncHandler(async (req, res) => {
-    const { email } = req.body;
+    const email = req.body.email.toLowerCase();
     const SAFE = { success: true, message: 'If that email exists, a reset link has been sent' };
 
     if (!transporter) return res.ok(SAFE);

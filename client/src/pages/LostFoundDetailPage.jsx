@@ -130,31 +130,40 @@ export default function LostFoundDetailPage() {
                                 {/* Badges and Status */}
                                 <div className="d-flex justify-content-between align-items-start mb-3">
                                     <div className="d-flex gap-2 flex-wrap">
-                                        <Badge style={{
+                                        <span style={{
                                             backgroundColor: post.type === 'lost' ? '#fee2e2' : '#dcfce7',
                                             color: post.type === 'lost' ? '#ef4444' : '#16a34a',
                                             fontWeight: 700,
-                                            fontSize: '0.75rem'
+                                            fontSize: '0.75rem',
+                                            padding: '3px 8px',
+                                            borderRadius: '4px',
+                                            display: 'inline-block',
                                         }}>
                                             {post.type.toUpperCase()}
-                                        </Badge>
-                                        <Badge style={{
+                                        </span>
+                                        <span style={{
                                             backgroundColor: isResolved ? '#f3f4f6' : '#fef9c3',
                                             color: isResolved ? '#6b7280' : '#ca8a04',
                                             fontWeight: 700,
-                                            fontSize: '0.75rem'
+                                            fontSize: '0.75rem',
+                                            padding: '3px 8px',
+                                            borderRadius: '4px',
+                                            display: 'inline-block',
                                         }}>
                                             {isResolved ? 'RESOLVED' : 'OPEN'}
-                                        </Badge>
+                                        </span>
                                         {post.category && (
-                                            <Badge style={{
+                                            <span style={{
                                                 backgroundColor: '#f0f0f0',
                                                 color: '#64748B',
                                                 fontWeight: 600,
-                                                fontSize: '0.72rem'
+                                                fontSize: '0.72rem',
+                                                padding: '3px 8px',
+                                                borderRadius: '4px',
+                                                display: 'inline-block',
                                             }}>
                                                 {post.category.name}
-                                            </Badge>
+                                            </span>
                                         )}
                                     </div>
                                 </div>
