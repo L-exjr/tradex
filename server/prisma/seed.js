@@ -44,6 +44,7 @@ const LISTING_CATEGORIES = [
     'Art & Crafts',
     'Food & Groceries',
     'Services',
+    'Staionery',
     'Other',
 ];
 
@@ -54,6 +55,7 @@ const LOSTFOUND_CATEGORIES = [
     'Bags & Luggage',
     'Keys',
     'Books & Stationery',
+    'Glasses & Eyewear',
     'Jewellery & Watches',
     'Sports Equipment',
     'Other',
