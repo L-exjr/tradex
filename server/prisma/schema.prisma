@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
-  output = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum ListingStatus {
@@ -30,25 +32,25 @@ enum TransactionStatus {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  studentId    String?   @unique
-  avatarUrl    String?
-  avatarPath   String?
-  createdAt    DateTime  @default(now())
-  resetToken   String?
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  studentId        String?   @unique
+  avatarUrl        String?
+  avatarPath       String?
+  createdAt        DateTime  @default(now())
+  resetToken       String?
   resetTokenExpiry DateTime?
 
-  listings     Listing[]
-  posts        LostFoundPost[]
-  sentMessages Message[] @relation("Sender")
-  receivedMessages Message[] @relation("Receiver")
-  purchases    Transaction[] @relation("Buyer")
-  sales        Transaction[] @relation("Seller")
-  reports      Report[]
-  SavedListing SavedListing[]
+  listings         Listing[]
+  posts            LostFoundPost[]
+  sentMessages     Message[]     @relation("Sender")
+  receivedMessages Message[]     @relation("Receiver")
+  purchases        Transaction[] @relation("Buyer")
+  sales            Transaction[] @relation("Seller")
+  reports          Report[]
+  SavedListing     SavedListing[]
 }
 
 model Category {
@@ -62,17 +64,17 @@ model Category {
 
 model Listing {
   pickupLocation String?
-  id           Int            @id @default(autoincrement())
-  userId       String
-  title        String
-  description  String
-  price        Float
-  categoryId   Int
-  status       ListingStatus  @default(active)
-  createdAt    DateTime       @default(now())
+  id             Int           @id @default(autoincrement())
+  userId         String
+  title          String
+  description    String
+  price          Float
+  categoryId     Int
+  status         ListingStatus @default(active)
+  createdAt      DateTime      @default(now())
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category     Category @relation(fields: [categoryId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category      @relation(fields: [categoryId], references: [id])
   images       Image[]
   transactions Transaction[]
   reports      Report[]
@@ -82,7 +84,7 @@ model Listing {
 }
 
 model LostFoundPost {
-  id            Int       @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   userId        String
   title         String
   description   String
@@ -102,13 +104,13 @@ model LostFoundPost {
 }
 
 model Image {
-  id        Int     @id @default(autoincrement())
+  id        Int  @id @default(autoincrement())
   url       String
   listingId Int?
   postId    Int?
 
-  listing   Listing?      @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  post      LostFoundPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  listing Listing?       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  post    LostFoundPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([listingId])
   @@index([postId])
@@ -122,7 +124,7 @@ model Message {
   createdAt  DateTime @default(now())
   readStatus Boolean  @default(false)
 
-  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  sender   User @relation("Sender",   fields: [senderId],   references: [id], onDelete: Cascade)
   receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   @@index([senderId])
@@ -130,16 +132,16 @@ model Message {
 }
 
 model Transaction {
-  id         Int               @id @default(autoincrement())
-  listingId  Int
-  buyerId    String
-  sellerId   String
-  price      Float
-  status     TransactionStatus @default(pending)
-  createdAt  DateTime          @default(now())
+  id        Int               @id @default(autoincrement())
+  listingId Int
+  buyerId   String
+  sellerId  String
+  price     Float
+  status    TransactionStatus @default(pending)
+  createdAt DateTime          @default(now())
 
   listing Listing @relation(fields: [listingId], references: [id])
-  buyer   User    @relation("Buyer", fields: [buyerId], references: [id])
+  buyer   User    @relation("Buyer",  fields: [buyerId],  references: [id])
   seller  User    @relation("Seller", fields: [sellerId], references: [id])
 
   @@index([buyerId])
@@ -155,9 +157,9 @@ model Report {
   reason     String
   createdAt  DateTime @default(now())
 
-  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-  listing  Listing? @relation(fields: [listingId], references: [id])
-  post     LostFoundPost? @relation(fields: [postId], references: [id])
+  reporter User           @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  listing  Listing?       @relation(fields: [listingId],  references: [id])
+  post     LostFoundPost? @relation(fields: [postId],     references: [id])
 
   @@index([reporterId])
   @@index([listingId])
@@ -165,12 +167,12 @@ model Report {
 }
 
 model SavedListing {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   userId    String
   listingId Int
   createdAt DateTime @default(now())
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
   listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, listingId])

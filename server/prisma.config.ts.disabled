@@ -1,0 +1,4 @@
+# prisma.config.ts was used by Prisma 7 only.
+# Removed when downgrading to Prisma 6.
+# Datasource URL is now read directly from DATABASE_URL env var
+# as defined in prisma/schema.prisma.
