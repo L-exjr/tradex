@@ -177,16 +177,6 @@ function SignupPage() {
                                 </Button>
                             </Form>
 
-                            <div className="d-flex align-items-center my-4">
-                                <hr className="flex-grow-1" />
-                                <span className="mx-2 small text-muted">OR CONTINUE WITH</span>
-                                <hr className="flex-grow-1" />
-                            </div>
-
-                            <Button variant="light" className="w-100 border" disabled title="Not available yet">
-                                Google
-                            </Button>
-
                             <p className="text-center small mt-4">
                                 Already have an account?{" "}
                                 <Link to="/login" className="fw-semibold text-decoration-none" style={{ color: "#E0E000" }}>
