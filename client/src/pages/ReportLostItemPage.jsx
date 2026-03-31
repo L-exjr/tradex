@@ -79,7 +79,6 @@ export default function ReportLostItemPage() {
         <>
             <AppNavbar bg="#FFFFFF" border={true} rightLinks={[
                 { label: 'Lost & Found', to: '/lostfound' },
-                { label: 'Profile', to: '/profile' }
             ]} />
 
             <div className="report-lost-page">
